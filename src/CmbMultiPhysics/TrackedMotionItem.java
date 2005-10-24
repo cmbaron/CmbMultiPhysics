@@ -30,7 +30,8 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
     
     public void tickForward(float deltaT) {
         super.tickForward(deltaT);
-        
+        // tell our master that we've done something
+        pt.registerTick(this);
     }
     
     public TrackedMotionItem(FloatVector position, float mass) {

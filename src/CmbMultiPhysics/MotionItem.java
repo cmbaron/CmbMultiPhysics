@@ -297,6 +297,8 @@ public class MotionItem implements PositionItem,CollisionItem {
         // now we set our velocity
         setVelocity(hisMomentum);
         
+        ///System.out.println("hell yeah, smack that bitch");
+        
         // i'd say the collision is over now, that was messy
     }
     

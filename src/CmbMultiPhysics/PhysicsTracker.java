@@ -21,15 +21,17 @@ import java.util.Iterator;
  *
  * @author Chris Baron
  */
-public class PhysicsTracker {
+public class PhysicsTracker implements Runnable {
     
     static private PhysicsTracker instance = null;
     private Hashtable perTickItems;
     private Vector trackableItems;
+    private int rateInMillis;
     
     /** Creates a new instance of PhysicsTracker */
     public PhysicsTracker() {
         trackableItems = new Vector();
+        rateInMillis = 50;
     }
     
     static public PhysicsTracker getInstance() {
@@ -39,7 +41,20 @@ public class PhysicsTracker {
         return(instance);
     }
     
-    public void tickForward(float deltaT) {
+    public void run() {
+        
+        while (true) {
+            try {
+                //System.out.println("RUNN");
+                Thread.sleep(rateInMillis);
+                tickForward((float)rateInMillis/1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public synchronized void tickForward(float deltaT) {
 
         perTickItems = new Hashtable();
         
@@ -47,14 +62,19 @@ public class PhysicsTracker {
     
         while (i.hasNext()) {
             try {
-            i.next().tickForward(deltaT);
+                Trackable item = i.next();
+                item.tickForward(deltaT);
+                ///System.out.println("tick");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        
+        ///System.out.println("TICK");
     }
     
     public synchronized void registerItem(Trackable t) {
+        System.out.print("Register!");
         trackableItems.add(t);
     }
     
@@ -66,17 +86,25 @@ public class PhysicsTracker {
     
         
         while (enumeration.hasMoreElements()) {
-            final Shape nextShape = enumeration.nextElement();
+            Shape nextShape = enumeration.nextElement();
+            ///System.out.println("incoming: " + incomingShape.getBounds2D().toString());
+            ///System.out.println("next: " + nextShape.getBounds2D().toString());
             if (nextShape.contains(incomingShape.getBounds2D())) {
+                System.out.println("We should be colliding now");
                 // we collided with something, so lets pull out the trackable
                 Trackable collidingTrackable = (Trackable) perTickItems.get(nextShape);
                 
+                ///System.out.println(Boolean.toString((CollisionItem.class.isInstance(t))));
+                ///System.out.println(Boolean.toString((CollisionItem.class.isInstance(collidingTrackable))));
+                
                 // check to see if we've got TWO collision items
-                if ((t.getClass().isAssignableFrom(CollisionItem.class)) && (collidingTrackable.getClass().isAssignableFrom(CollisionItem.class))) {
+                if (CollisionItem.class.isInstance(t) && CollisionItem.class.isInstance(collidingTrackable)) {
                     ((CollisionItem) t).doCollision((CollisionItem)collidingTrackable);
                 }
             }
         }
+        
+        perTickItems.put(incomingShape, t);
         
     }
     
