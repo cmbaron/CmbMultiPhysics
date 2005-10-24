@@ -23,8 +23,9 @@ public interface Drivable {
     public void setBrake(float pct);
     public void resetAcceleration();
     public void resetBrake();
-    public float getAccelleration();
+    public float getAcceleration();
     public float getBrake();
+    public FloatVector getDirection();
     public FloatVector getVelocity();
-    public void turn(FloatVector f);
+    public void setDirection(FloatVector f);
 }
