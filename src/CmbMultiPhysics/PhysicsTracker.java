@@ -19,7 +19,33 @@ import java.util.Iterator;
 import java.awt.geom.Rectangle2D;
 
 /**
+ * This class is an alternative way of implementing moving-object physics. The 
+ * MotionItem is implemented to receive 'ticks' and compute its position and 
+ * velocity information by numerical integration of the forces acting on the 
+ * free body. 
+ * In the tradition MotionItem, the ticks must be handled by the application 
+ * using the library. PhysicsTracker generates its own ticks, and tells all 
+ * Trackable's to tickForward.
+ * 
+ * Thread t = new Thread(PhysicsTracker.getInstance());
+ * t.start();
+ * 
+ * PhysicsTracker implements register(Trackable t), and 
+ * registerTick(Trackable t). This allows the tracker to maintain a list of all 
+ * objects to be tracked, and a per-tick update of positions. 
+ * register(Trackable t) puts the Trackable in a Vector, over which ticks are 
+ * iterated.
+ * 
+ * The key to collisions is the registerTick method. When a Trackable gets a 
+ * tick it should do its processing then call 
+ * PhysicsTracker.getInstance().registerTick(self). The tracker gets the shape 
+ * of the caller, checks to see if keys (Shape) in the Hashtable of 
+ * perTickTrackables intersects that shape, if it does then it checks to see 
+ * if the Trackables are also CollisionItems. If they are both CollisionItems 
+ * a collision is forced, positions are corrected*, and the Trackable is thrown 
+ * into a hash keyed by its Shape.
  *
+ * @implements Runnable
  * @author Chris Baron
  */
 public class PhysicsTracker implements Runnable {
@@ -35,6 +61,10 @@ public class PhysicsTracker implements Runnable {
         rateInMillis = 1;
     }
     
+    /** Gets the singleton instance
+     *
+     * @return instance of the physicstracker
+     */
     static public PhysicsTracker getInstance() {
         if (instance == null) {
             instance = new PhysicsTracker();
@@ -42,6 +72,9 @@ public class PhysicsTracker implements Runnable {
         return(instance);
     }
     
+    /** 
+     * Runs the thread
+     */
     public void run() {
         
         while (true) {
@@ -55,6 +88,10 @@ public class PhysicsTracker implements Runnable {
         }
     }
     
+    /** Iterates over all registered Trackables
+     *  @see registerTick()
+     *  @param deltaT the time duration to tick all physics items
+     */
     public synchronized void tickForward(float deltaT) {
 
         perTickItems = new Hashtable();
@@ -74,12 +111,26 @@ public class PhysicsTracker implements Runnable {
         ///System.out.println("TICK");
     }
     
+    /** Registers an item to be ticked 
+     * 
+     * @param Trackable
+     */
     public synchronized void registerItem(Trackable t) {
         System.out.print("Register!");
         trackableItems.add(t);
     }
     
-    
+    /** Called by a ticked Tracker to register a new position
+     *
+     * The tracker gets the shapeof the caller, checks to see if keys (Shape) in 
+     * the Hashtable of perTickTrackables intersects that shape, if it does then 
+     * it checks to see if the Trackables are also CollisionItems. If they are 
+     * both CollisionItems* a collision is forced, positions are corrected*, and 
+     * the Trackable is thrown into a hash keyed by its Shape.
+     *
+     * @param t the Trackable that got ticked.
+     *
+     */
     public synchronized void registerTick(Trackable t) {
         Shape incomingShape = t.getShape();
         
