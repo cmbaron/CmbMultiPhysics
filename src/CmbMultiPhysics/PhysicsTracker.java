@@ -87,9 +87,9 @@ public class PhysicsTracker implements Runnable {
         
         while (enumeration.hasMoreElements()) {
             Shape nextShape = enumeration.nextElement();
-            ///System.out.println("incoming: " + incomingShape.getBounds2D().toString());
-            ///System.out.println("next: " + nextShape.getBounds2D().toString());
-            if (nextShape.contains(incomingShape.getBounds2D())) {
+            System.out.println("incoming: " + incomingShape.getBounds2D().toString());
+            System.out.println("next: " + nextShape.getBounds2D().toString());
+            if (nextShape.intersects(incomingShape.getBounds2D())) {
                 System.out.println("We should be colliding now");
                 // we collided with something, so lets pull out the trackable
                 Trackable collidingTrackable = (Trackable) perTickItems.get(nextShape);

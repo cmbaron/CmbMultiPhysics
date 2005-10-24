@@ -43,7 +43,9 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
     
     // makes a stupid shape
     public Shape getShape() {
-        return(new Rectangle2D.Float(getPosition().getX(), getPosition().getY(), 2, 2));
+        int fakex = 5;
+        int fakey = 5;
+        return(new Rectangle2D.Float(getPosition().getX()-(float)fakex/2, getPosition().getY()-(float)fakey/2, fakex, fakey));
     }
     
 }
