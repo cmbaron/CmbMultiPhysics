@@ -31,7 +31,7 @@ public class PhysicsTracker implements Runnable {
     /** Creates a new instance of PhysicsTracker */
     public PhysicsTracker() {
         trackableItems = new Vector();
-        rateInMillis = 10;
+        rateInMillis = 1;
     }
     
     static public PhysicsTracker getInstance() {
