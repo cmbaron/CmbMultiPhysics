@@ -215,38 +215,81 @@ public class MotionItem implements PositionItem,CollisionItem {
         velocity.add(equilibriumDirection);
     }
     
-    public FloatVector getMomentum(CollisionItem c) {
+    public FloatVector getMomentum() {
         return (getVelocity().scale(getMass()));
     }
     
-    /** This is to be called safely from doCollision, it
-     * will trigger the remote object to assist in the momentum calculations
-     * possibly using this object via getMomentum.  it is safe this way.
+    /** This method is called from a colliding objects doCollision method
+     *  This is the business end of collision invokation.  It determines for
+     *  both objects what the outcome of the collision will be.
      *
+     *  This is a pretty simple collision model.  It simulates a purely elastic
+     *  Collision between two bodies with IDENTICAL radius.  They don't have to
+     *  be the same for the collision to work, it doesn't matter if its different.
      *
-     *  i don't use it here yet.
+     *  @param c the object we're colliding with
+     *  @return The new momentum of the caller
      */
     public FloatVector getCollisionMomentum(CollisionItem c) {
-        return (c.getMomentum((CollisionItem) this));
+        //return (c.getMomentum((CollisionItem) this));
+        
+        // them    us    them     us
+        // m1v1 + m2v2 = m1v1' + m2v2'
+        // we know our momentum getMomentum(), we know their momentum c.getMomentum()
+        FloatVector us = getMomentum();
+        FloatVector them = c.getMomentum();
+        final float ourMass = getMass();
+        final float theirMass = getMass();
+        // p = v*m => v = p/m
+        FloatVector ourVelocity = ((FloatVector)us.clone()).scale(1/ourMass);
+        FloatVector theirVelocity = ((FloatVector)them.clone()).scale(1/theirMass);
+      
+        // these equations are the result of the conservation of momentum
+        // and the conservation of kinetic enegry equations
+        //
+        // v1 = v1i * (m1 - m2) / (m1 + m2) + v2i * (2 * m2) / (m1 + m2)
+        // v2 = v1i * ( 2 * m1) / (m1 + m2) + v2i * (m2 - m1) / (m2 + m1)
+        //   (credit: http://www.mcasco.com/p1lmc.html)
+        
+        FloatVector ourNewVelocity = (FloatVector)ourVelocity.clone();
+        // this is the first half of eq1.. 
+        // v1 = v1i * (m1 - m2) / (m1 + m2)
+        ourNewVelocity.scale((ourMass-theirMass)/(ourMass+theirMass));
+        // second half of eq1
+        // + v2i * (2 * m2) / (m1 + m2)
+        ourNewVelocity.add(((FloatVector)theirVelocity.clone()).scale((2*theirMass)/(ourMass+theirMass)));
+        
+        FloatVector theirNewVelocity = (FloatVector)theirVelocity.clone();
+        // second part of first eq
+        // v2i * (m2 - m1) / (m2 + m1)
+        theirNewVelocity.scale((theirMass-ourMass)/(theirMass+ourMass));
+        // + v1i * (2 * m1) / (m1 + m2)
+        theirNewVelocity.add(((FloatVector)ourVelocity.clone()).scale((2 * ourMass)/(ourMass+theirMass)));
+        
+        // now we set our velocity, and tell them their new momentum
+        setVelocity(ourNewVelocity);
+        return(theirNewVelocity);
     }
     
+    /** This method invokes a 2-body collision between this object and another object
+     *  it calls the colliding object to find out what the result of the collision will
+     *  be.
+     *
+     *  @param c object to collide with (colliding object will determine collision semantics)
+     *
+     */
     public void doCollision(CollisionItem c) {
-        // get our enemy's momentum
+        
+        // we're going to fetch what he wants us to be
         final FloatVector hisMomentum = c.getCollisionMomentum((CollisionItem)this);
-        // get our current momentum
-        //DoubleVector newMomentum = getMomentum((CollisionItem) this );
         
-        //hisMomentum.add(getMomentum((CollisionItem) this));
-        //newMomentum.add(hisMomentum);
-        
-        
-        // this is our new momentum, once we scale out mass, we have our new velocity
-        // momentum = mass * velocity
+        // now we remove our mass from that
         hisMomentum.scale(1/getMass());
-        //System.out.println(hisMomentum.toString());
-        // and now the collision is complete.
+       
+        // now we set our velocity
         setVelocity(hisMomentum);
         
+        // i'd say the collision is over now, that was messy
     }
     
     /** Computes the forces that are to work on the item

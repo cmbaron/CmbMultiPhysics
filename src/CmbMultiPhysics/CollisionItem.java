@@ -16,8 +16,16 @@ package CmbMultiPhysics;
  */
 public interface CollisionItem {
 
-    public FloatVector getMomentum(CollisionItem c);
+    // the idea is to call doCollision(c)
+    // doCollision calls c.getCollisionMomentum(c)
+    // getCollisionMomentum calls c.getMomentum(c);
+    // getMomentum returns the CURRENT momentum
+    // getCollisionMomentum returns the NEW momentum (and sets it locally!)
+    // doCollision sets the momentum given by the doCollisionMomentum call.
+    public FloatVector getMomentum();
     public FloatVector getCollisionMomentum(CollisionItem c);
     public void doCollision(CollisionItem c);
+    public float getMass();
+    public float getSize();
     
 }
