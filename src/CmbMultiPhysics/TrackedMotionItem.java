@@ -11,6 +11,7 @@
 package CmbMultiPhysics;
 
 import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 
 /**
  *
@@ -34,7 +35,7 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
     }
     
     public Shape getShape() {
-        
+        return(new Rectangle2D.Float(getPosition().getX(), getPosition().getY(), 2, 2));
     }
     
 }

@@ -47,7 +47,7 @@ public class PhysicsTracker {
     
         while (i.hasNext()) {
             try {
-            i.next().tickForward();
+            i.next().tickForward(deltaT);
             } catch (Exception e) {
                 e.printStackTrace();
             }
