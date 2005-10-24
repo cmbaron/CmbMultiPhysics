@@ -12,6 +12,7 @@ package CmbMultiPhysics;
 
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 
 /**
  *
@@ -45,7 +46,19 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
     public Shape getShape() {
         int fakex = 5;
         int fakey = 5;
+ 
+        /* ARGH
+        Point2D points[] = new Point2D[4];
+
+        points[0].setLocation(getPosition().getX()-(float)fakex/2, getPosition().getY()-(float)fakey/2);
+        points[1].setLocation(getPosition().getX()+(float)fakex/2, getPosition().getY()+(float)fakey/2);
+        points[2].setLocation(getPosition().getX()-(float)fakex/2, getPosition().getY()+(float)fakey/2);
+        points[3].setLocation(getPosition().getX()+(float)fakex/2, getPosition().getY()-(float)fakey/2);
+        
+        return(new FloatPolygon(points));
+        */
         return(new Rectangle2D.Float(getPosition().getX()-(float)fakex/2, getPosition().getY()-(float)fakey/2, fakex, fakey));
+    
     }
     
 }
