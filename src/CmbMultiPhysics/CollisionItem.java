@@ -26,7 +26,6 @@ public interface CollisionItem {
     public FloatVector getCollisionMomentum(CollisionItem c);
     public void doCollision(CollisionItem c);
     public float getMass();
-    public int getSize();
     public void setCollidable(boolean b);
     public boolean getCollidable();
     

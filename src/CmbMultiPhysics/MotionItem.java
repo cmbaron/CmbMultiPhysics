@@ -28,7 +28,7 @@ import java.util.*;
  */
 public class MotionItem implements PositionItem,CollisionItem {
     
-    
+    private boolean collidable;
     
     /** Creates a new instance of MotionItem */
     public MotionItem() {
@@ -55,6 +55,7 @@ public class MotionItem implements PositionItem,CollisionItem {
         position = new FloatVector();
         forceSum = new FloatVector();
         mass = 1;
+        collidable = true;
     }
     
     /** add a force item to this motionitem
@@ -63,6 +64,14 @@ public class MotionItem implements PositionItem,CollisionItem {
      */
     public void addItem(ForceItem f) {
         forceItems.add(f);
+    }
+    
+    public boolean getCollidable() {
+        return collidable;
+    }
+    
+    public void setCollidable(boolean s) {
+        collidable = s;
     }
     
     private void removeItem(ForceItem f)

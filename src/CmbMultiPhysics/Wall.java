@@ -21,6 +21,8 @@ public class Wall implements CollisionItem {
     public static final FloatVector LEFTWALL = new FloatVector(-1,0);
     public static final FloatVector RIGHTWALL = new FloatVector(1,0);
     
+    private boolean collidable;
+    
     float lossyness = 0;
     FloatVector direction;
     
@@ -42,7 +44,7 @@ public class Wall implements CollisionItem {
     // following the collision
     public FloatVector getCollisionMomentum(CollisionItem c) {
         // return  null;
-        FloatVector hisMomentum = c.getMomentum((CollisionItem)this);
+        FloatVector hisMomentum = c.getMomentum();
         FloatVector proj = getDirection().project(hisMomentum);
         FloatVector directionalMomentum = getDirection().scale(proj.getMagnitude());
         
@@ -59,7 +61,7 @@ public class Wall implements CollisionItem {
     /**  Walls have NO momentum, stupid.
      *
      */
-    public FloatVector getMomentum(CollisionItem c) {
+    public FloatVector getMomentum() {
         return new FloatVector(0,0);
     }
     
@@ -69,5 +71,18 @@ public class Wall implements CollisionItem {
         // to do anything since it's a WALL.
         // i guess the standard should be to doCollision on BOTH items
         // synchronously, but there is nothing to do here.
+    }
+    
+    public boolean getCollidable () {
+        return collidable;
+    }
+    
+    // whoa, wicked broken
+    public float getMass() {
+        return (1);
+    }
+    
+    public void setCollidable(boolean s) {
+        collidable = s;
     }
 }
