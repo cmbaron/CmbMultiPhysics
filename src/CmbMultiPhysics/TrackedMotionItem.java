@@ -28,12 +28,19 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
         pt.registerItem(this);
     }
     
+    public void tickForward(float deltaT) {
+        super.tickForward(deltaT);
+        
+    }
+    
     public TrackedMotionItem(FloatVector position, float mass) {
         super(position, mass);
         pt = pt.getInstance();
         pt.registerItem(this);
     }
     
+    
+    // makes a stupid shape
     public Shape getShape() {
         return(new Rectangle2D.Float(getPosition().getX(), getPosition().getY(), 2, 2));
     }
