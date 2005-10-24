@@ -223,9 +223,8 @@ public class MotionItem implements PositionItem,CollisionItem {
      *  This is the business end of collision invokation.  It determines for
      *  both objects what the outcome of the collision will be.
      *
-     *  This is a pretty simple collision model.  It simulates a purely elastic
-     *  Collision between two bodies with IDENTICAL radius.  They don't have to
-     *  be the same for the collision to work, it doesn't matter if its different.
+     *  This is a pretty simple collision model.  Its completely elastic, and it probably
+     *  won't work worth a damn.
      *
      *  @param c the object we're colliding with
      *  @return The new momentum of the caller
