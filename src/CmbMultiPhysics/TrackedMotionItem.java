@@ -15,6 +15,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 
 /**
+ * The TrackedMotionItem extends MotionItem and implements Trackable. 
+ * It registers itself with the PhysicsTracker in the constructor, and registers 
+ * ticks with the PhysicsTracker upon each tickForward.
  *
  * @author Administrator
  */
@@ -28,13 +31,23 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
         pt = pt.getInstance();
         pt.registerItem(this);
     }
-    
+    /**
+     * Ticks forward and phones the tracker with its new position
+     *
+     * @param deltaT time difference over which numerical integration will occur
+     */
     public void tickForward(float deltaT) {
         super.tickForward(deltaT);
         // tell our master that we've done something
         pt.registerTick(this);
     }
     
+    /**
+     * Overridden constructor to allow initial position/mass
+     *
+     * @param position starting position of this object
+     * @param mass starting mass of this object
+     */
     public TrackedMotionItem(FloatVector position, float mass) {
         super(position, mass);
         pt = pt.getInstance();
@@ -42,7 +55,16 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
     }
     
     
-    // makes a stupid shape
+    /**
+     * Makes a fake-me-out shape to be used for object detection.  This really
+     * should be computed from a static (or actually physically rotationg) 
+     * Polygon2D.  The Polygon2D should be transposed onto the current position
+     * before getting passed.  Perhaps that should be getPositionShape, but
+     * at this point its P.O.C.
+     *
+     * @returns shape at coordinate of object
+     * 
+     */
     public Shape getShape() {
         int fakex = 2;
         int fakey = 2;
