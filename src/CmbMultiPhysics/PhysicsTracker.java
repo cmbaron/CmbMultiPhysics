@@ -31,7 +31,7 @@ public class PhysicsTracker implements Runnable {
     /** Creates a new instance of PhysicsTracker */
     public PhysicsTracker() {
         trackableItems = new Vector();
-        rateInMillis = 50;
+        rateInMillis = 10;
     }
     
     static public PhysicsTracker getInstance() {
@@ -87,8 +87,8 @@ public class PhysicsTracker implements Runnable {
         
         while (enumeration.hasMoreElements()) {
             Shape nextShape = enumeration.nextElement();
-            System.out.println("incoming: " + incomingShape.getBounds2D().toString());
-            System.out.println("next: " + nextShape.getBounds2D().toString());
+            ///System.out.println("incoming: " + incomingShape.getBounds2D().toString());
+            ///System.out.println("next: " + nextShape.getBounds2D().toString());
             if (nextShape.intersects(incomingShape.getBounds2D())) {
                 System.out.println("We should be colliding now");
                 // we collided with something, so lets pull out the trackable
