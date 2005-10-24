@@ -28,5 +28,4 @@ public interface CollisionItem {
     public float getMass();
     public void setCollidable(boolean b);
     public boolean getCollidable();
-    
 }

@@ -16,6 +16,7 @@ import java.awt.Shape;
 import java.lang.Class;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.awt.geom.Rectangle2D;
 
 /**
  *
@@ -89,7 +90,11 @@ public class PhysicsTracker implements Runnable {
             Shape nextShape = enumeration.nextElement();
             ///System.out.println("incoming: " + incomingShape.getBounds2D().toString());
             ///System.out.println("next: " + nextShape.getBounds2D().toString());
-            if (nextShape.intersects(incomingShape.getBounds2D())) {
+            
+            final Rectangle2D incomingRect = incomingShape.getBounds2D();
+            final Rectangle2D nextRect = nextShape.getBounds2D(); 
+            
+            if (nextShape.intersects(incomingRect)) {
                 System.out.println("We should be colliding now");
                 // we collided with something, so lets pull out the trackable
                 Trackable collidingTrackable = (Trackable) perTickItems.get(nextShape);
@@ -100,6 +105,44 @@ public class PhysicsTracker implements Runnable {
                 // check to see if we've got TWO collision items
                 if (CollisionItem.class.isInstance(t) && CollisionItem.class.isInstance(collidingTrackable)) {
                     ((CollisionItem) t).doCollision((CollisionItem)collidingTrackable);
+                         
+                    FloatVector center1 = new FloatVector((float)incomingRect.getCenterX(), (float)incomingRect.getCenterY());
+                    FloatVector center2 = new FloatVector((float)nextRect.getCenterX(), (float)nextRect.getCenterY());
+                    //FloatVector dimension1 = new FloatVector((float)incomingRect.getWidth(), (float)incomingRect.getHeight());
+                    //FloatVector dimension2 = new FloatVector((float)nextRect.getWidth(), (float)nextRect.getHeight());
+                    
+                    //FloatVector incomingPosition = t.getPosition();
+                    //FloatVector collidingPosition = collidingTrackable.getPosition();
+                    
+                    final FloatVector dist2Center = ((FloatVector) center1.clone()).subtract(center2);
+                    
+                    final float x = dist2Center.getX();
+                    final float y = dist2Center.getY();
+                    
+                    // its left
+                    if (x > 0) {
+                        center1.add(new FloatVector(x/2, 0f));
+                        center2.subtract(new FloatVector(x/2, 0f));
+                    } else if (x < 0) {  // right
+                        center1.subtract(new FloatVector(x/2, 0f));
+                        center2.add(new FloatVector( x/2, 0f));
+                    }
+                    
+                    // its below
+                    if (y > 0) {
+                        center1.add(new FloatVector(0f, y/2));
+                        center2.subtract(new FloatVector(0f, y/2));
+                    } else if (y < 0) { // above
+                        center1.subtract(new FloatVector(0f, y/2));
+                        center2.add(new FloatVector(0f, y/2));
+                    }
+                  
+                    t.setPosition(center1);
+                    collidingTrackable.setPosition(center2);
+                    
+
+
+                    
                 }
             }
         }

@@ -44,8 +44,8 @@ public class TrackedMotionItem extends MotionItem implements Trackable {
     
     // makes a stupid shape
     public Shape getShape() {
-        int fakex = 5;
-        int fakey = 5;
+        int fakex = 2;
+        int fakey = 2;
  
         /* ARGH
         Point2D points[] = new Point2D[4];

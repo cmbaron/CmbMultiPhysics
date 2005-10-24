@@ -18,5 +18,6 @@ import java.awt.Shape;
 public interface Trackable {
     public Shape getShape();
     public FloatVector getPosition();
+    public void setPosition(FloatVector p);
     public void tickForward(float deltaT);
 }
