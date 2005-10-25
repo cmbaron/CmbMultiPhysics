@@ -92,7 +92,7 @@ public class MotionItem implements PositionItem,CollisionItem {
      * @return position vector.  you should take this as an absolute location, even though it's in a vector
      */
     public FloatVector getPosition() {
-        return position;
+        return (FloatVector)position.clone();
     }
     
     /** Set the position of the MotionItem
@@ -399,23 +399,23 @@ public class MotionItem implements PositionItem,CollisionItem {
      */
     private void computePosition(float deltaT) {
         
-
-        ///System.out.println("before calcs");
-        ///System.out.println(".5 * " + Double.toString(forceSum.getX()) + " * " + Double.toString(deltaT*deltaT) + " + "+ Double.toString(velocity.getX()));
-        ///System.out.println(" * " + Double.toString(deltaT) + " + " + Double.toString(position.getX()) + " = ");
-        ///System.out.println(Float.toString((float)((.5) * forceSum.getX()/getMass() * deltaT*deltaT + velocity.getX() * deltaT + position.getX())));
-        
+/*
+        System.out.println("before calcs");
+        System.out.println(".5 * " + Double.toString(forceSum.getX()) + " * " + Double.toString(deltaT*deltaT) + " + "+ Double.toString(velocity.getX()));
+        System.out.println(" * " + Double.toString(deltaT) + " + " + Double.toString(position.getX()) + " = ");
+        System.out.println(Float.toString((float)((.5) * forceSum.getX()/getMass() * deltaT*deltaT + velocity.getX() * deltaT + position.getX())));
+  */      
         // this is the standard positional formula
         // dX = 1/2 * F(x) * t^2 + V(x)*t
         // X = dx + X(t-1)
         position.setX((float)((.5) * forceSum.getX()/getMass() * deltaT*deltaT + velocity.getX() * deltaT + position.getX()));
         position.setY((float)((.5) * forceSum.getY()/getMass() * deltaT*deltaT + velocity.getY() * deltaT + position.getY()));
-        
-        ///System.out.println("after calcs");
-        ///System.out.println(".5 * " + Double.toString(forceSum.getX()) + " * " + Double.toString(deltaT*deltaT) + " + "+ Double.toString(velocity.getX()));
-        ///System.out.println(" * " + Double.toString(deltaT) + " + " + Double.toString(position.getX()) + " = ");
-        ///System.out.println(Double.toString((.5) * forceSum.getX() * deltaT*deltaT + velocity.getX() * deltaT + position.getX()));
-        
+    /*    
+        System.out.println("after calcs");
+        System.out.println(".5 * " + Double.toString(forceSum.getX()) + " * " + Double.toString(deltaT*deltaT) + " + "+ Double.toString(velocity.getX()));
+        System.out.println(" * " + Double.toString(deltaT) + " + " + Double.toString(position.getX()) + " = ");
+        System.out.println(Double.toString((.5) * forceSum.getX() * deltaT*deltaT + velocity.getX() * deltaT + position.getX()));
+      */  
         
     }
     
@@ -507,6 +507,15 @@ public class MotionItem implements PositionItem,CollisionItem {
      */
     public void setVelocity(CmbMultiPhysics.FloatVector velocity) {
         this.velocity = velocity;
+        /*
+        System.out.println("velocity" + velocity.toString() + Float.toHexString(velocity.getMagnitude()));
+        
+        try {
+            throw new Exception();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+         */
     }
     
 }

@@ -28,4 +28,5 @@ public interface Drivable {
     public FloatVector getDirection();
     public FloatVector getVelocity();
     public void setDirection(FloatVector f);
+    public FloatVector getPosition();
 }

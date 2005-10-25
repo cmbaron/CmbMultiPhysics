@@ -18,6 +18,8 @@ public class FloatVector implements Cloneable, java.io.Serializable {
    
     /** Creates a new instance of FloatVector */
     public FloatVector() {
+        x = 0f;
+        y = 0f;
     }
     
     /** constructor with parameters
@@ -124,6 +126,10 @@ public class FloatVector implements Cloneable, java.io.Serializable {
      *
      */
     public float getMagnitude() {
+        float mag = (float)Math.sqrt(x*x+y*y);
+        if (Float.isNaN(mag)) {
+            return(0f);
+        }
         return ((float)Math.sqrt(x*x+y*y));
     }
     
