@@ -53,6 +53,7 @@ public class Car extends TrackedMotionItem implements Drivable {
     private void initCar() {
         setDirection(new FloatVector());
         addItem(new BrakeForce());
+        setCollidable(false);
         resetBrake();
         resetAcceleration();
     }
