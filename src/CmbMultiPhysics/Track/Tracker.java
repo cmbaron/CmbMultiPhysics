@@ -38,11 +38,11 @@ import java.awt.geom.Rectangle2D;
  * Vector getOutsideObjects(Shape bounds);
  * Vector getOutsideObjects(Shabe bounds, Class classType);
  *
- * these are implemented very abstractly, and the key to the abstraction is a 
+ * these are implemented very abstractly, and the key to the abstraction is a
  * static public method that can determine if one object
  * is contained within the bounds, intersects the bounds, or is outside the bounds.
  *
- * static public boolean isWithinBoundryParameters(Shape object, Shape boundry, 
+ * static public boolean isWithinBoundryParameters(Shape object, Shape boundry,
  * ContainerParamaters parameter);
  * Tracker.ContainerParameters.CONTAINS
  * Tracker.ContainerParameters.INTERSECTS
@@ -55,13 +55,13 @@ import java.awt.geom.Rectangle2D;
 public class Tracker {
     
     
-    public static enum ContainerParameters { CONTAINS, INTERSECTS, NOTCONTAINED };
+    public static enum ContainerParameters { CONTAINS, INTERSECTS, NOTCONTAINED, CONTAINSORINTERSECTS };
     
     Vector items;
     
     /** Creates a new instance of Tracker */
     public Tracker() {
-        
+        items = new Vector();
     }
     
     /** Add an item to this tracker This method is private to allow the overriding
@@ -117,6 +117,11 @@ public class Tracker {
                 break;
             case NOTCONTAINED:
                 if (!boundry.contains(boundingBox) && !boundry.intersects(boundingBox)) {
+                    match = true;
+                }
+                break;
+            case CONTAINSORINTERSECTS:
+                if (boundry.contains(boundingBox) || boundry.intersects(boundingBox)) {
                     match = true;
                 }
                 break;
