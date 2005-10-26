@@ -17,6 +17,7 @@ import java.lang.Class;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.awt.geom.Rectangle2D;
+import CmbMultiPhysics.Track.Trackable;
 
 /**
  * This class is an alternative way of implementing moving-object physics. The 
@@ -116,7 +117,7 @@ public class PhysicsTracker implements Runnable {
      * @param Trackable
      */
     public synchronized void registerItem(Trackable t) {
-        System.out.print("Register!");
+        System.out.println("Register!");
         trackableItems.add(t);
     }
     

@@ -13,6 +13,7 @@ package CmbMultiPhysics;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import CmbMultiPhysics.Track.Trackable;
 
 /**
  * The TrackedMotionItem extends MotionItem and implements Trackable. 
