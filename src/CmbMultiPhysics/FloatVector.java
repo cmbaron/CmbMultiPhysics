@@ -236,11 +236,43 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     
     /** Finds an angle between this vector and another vector
      * @param U a vector to find the angle between
-     * @return the angle between this vector and the vector given
+     * @return the angle between this vector and the vector given in degrees
      */
     public float getAngle(final FloatVector U) {
-        return((float)Math.acos((this.dotProduct(U)/(this.getMagnitude()*U.getMagnitude()))));
+        return((float)Math.toDegrees((float)Math.acos((this.dotProduct(U)/(this.getMagnitude()*U.getMagnitude())))));
     }
+    
+    /** Creates a new Vector the specified number of degrees 
+     *
+     * @param angle angle in degrees
+     *
+     */
+    public FloatVector getRotation(float angle) {
+        
+        angle = (float) Math.toRadians(angle);
+        
+        // theorm Angle Between Two Vectors
+        // magnitude of orthogonal vector = tan (angle * pi/180) / magnitude of this
+        FloatVector orthogonal = getOrthogonal();
+        orthogonal = orthogonal.unitVector();
+        orthogonal = orthogonal.scale((float)Math.tan( angle ) * getMagnitude());
+
+        // orthogonal vector of the magnitude of this perpendicular displacement of a vector at the angle
+        // 
+        FloatVector newVector = orthogonal.add(this);
+        newVector = newVector.unitVector().scale(getMagnitude());
+        
+        return(newVector);
+        
+    }
+    
+    public FloatVector getOrthogonal() {
+        // returns an orthogonal vector
+        //   V = < x, y >
+        //   Vorthog = < -y, x >
+        return(new FloatVector( -1f * this.getY(), this.getX()));
+    }
+    
     
     /** Performs a dot product operation on this vector with another vector
      *
