@@ -25,4 +25,8 @@ public class RectanglePoint extends Rectangle2D.Float {
     public RectanglePoint(final FloatVector f, final float size) {
         super(f.getX()-(float)size/2, f.getY()-(float)size/2, size, size);
     }
+
+   public RectanglePoint(final FloatVector f, final float sizex, final float sizey) {
+        super(f.getX()-(float)sizex/2, f.getY()-(float)sizey/2, sizex, sizey);
+    }
 }

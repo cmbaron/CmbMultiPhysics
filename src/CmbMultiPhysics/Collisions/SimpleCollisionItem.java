@@ -8,13 +8,15 @@
  * Open. You can then make changes to the template in the Source Editor.
  */
 
-package CmbMultiPhysics;
+package CmbMultiPhysics.Collisions;
+
+import CmbMultiPhysics.*;
 
 /**
  *
  * @author cbaron
  */
-public interface CollisionItem {
+public interface SimpleCollisionItem {
 
     // the idea is to call doCollision(c)
     // doCollision calls c.getCollisionMomentum(c)
@@ -23,8 +25,8 @@ public interface CollisionItem {
     // getCollisionMomentum returns the NEW momentum (and sets it locally!)
     // doCollision sets the momentum given by the doCollisionMomentum call.
     public FloatVector getMomentum();
-    public FloatVector getCollisionMomentum(CollisionItem c);
-    public void doCollision(CollisionItem c);
+    public FloatVector getCollisionMomentum(SimpleCollisionItem c);
+    public void doCollision(SimpleCollisionItem c);
     public float getMass();
     public void setCollidable(boolean b);
     public boolean getCollidable();

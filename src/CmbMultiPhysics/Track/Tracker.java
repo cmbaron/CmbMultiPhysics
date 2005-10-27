@@ -245,7 +245,7 @@ public class Tracker {
      * @return Vector of all items
      */
     public Vector getItems() {
-        return(items);
+        return((Vector)items.clone());
     }
     
     /** set the vector of items

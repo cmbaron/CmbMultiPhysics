@@ -31,15 +31,6 @@ public interface Trackable {
      * @return positional vector
      */
     public FloatVector getPosition();
-    /** Sets the position
-     *
-     * NOTE: likely to disappear
-     *
-     * @param p The new position
-     * @deprecated This is virtually worthless at this point.  Only used to 
-     * process position correction following a collision, that needs to be
-     * rewritten into the motionitems. thanks for not using this.
-     */
-    public void setPosition(FloatVector p);
+
 
 }

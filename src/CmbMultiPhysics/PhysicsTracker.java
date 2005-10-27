@@ -17,6 +17,7 @@ import java.lang.Class;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.awt.geom.Rectangle2D;
+import CmbMultiPhysics.Collisions.SimpleCollisionItem;
 //import CmbMultiPhysics.Track.Trackable;
 
 /**
@@ -155,8 +156,8 @@ public class PhysicsTracker implements Runnable {
                 ///System.out.println(Boolean.toString((CollisionItem.class.isInstance(collidingTrackable))));
                 
                 // check to see if we've got TWO collision items
-                if (CollisionItem.class.isInstance(t) && CollisionItem.class.isInstance(collidingTrackable)) {
-                    ((CollisionItem) t).doCollision((CollisionItem)collidingTrackable);
+                if (SimpleCollisionItem.class.isInstance(t) && SimpleCollisionItem.class.isInstance(collidingTrackable)) {
+                    ((SimpleCollisionItem) t).doCollision((SimpleCollisionItem)collidingTrackable);
                          
                     FloatVector center1 = new FloatVector((float)incomingRect.getCenterX(), (float)incomingRect.getCenterY());
                     FloatVector center2 = new FloatVector((float)nextRect.getCenterX(), (float)nextRect.getCenterY());

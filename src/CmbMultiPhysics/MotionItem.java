@@ -12,6 +12,7 @@ package CmbMultiPhysics;
 
 import java.lang.*;
 import java.util.*;
+import CmbMultiPhysics.Collisions.SimpleCollisionItem;
 
 /** This is an item which will exhibit motion consistent with newtonian physics
  * Consider a MotionItem a body in a physical model with ForceItems as the forces
@@ -26,7 +27,7 @@ import java.util.*;
  *
  * @author Christopher Baron
  */
-public class MotionItem implements PositionItem,CollisionItem {
+public class MotionItem implements PositionItem,SimpleCollisionItem {
     
     private boolean collidable;
     
@@ -238,7 +239,7 @@ public class MotionItem implements PositionItem,CollisionItem {
      *  @param c the object we're colliding with
      *  @return The new momentum of the caller
      */
-    public FloatVector getCollisionMomentum(CollisionItem c) {
+    public FloatVector getCollisionMomentum(SimpleCollisionItem c) {
         //return (c.getMomentum((CollisionItem) this));
         
         // them    us    them     us
@@ -286,10 +287,10 @@ public class MotionItem implements PositionItem,CollisionItem {
      *  @param c object to collide with (colliding object will determine collision semantics)
      *
      */
-    public void doCollision(CollisionItem c) {
+    public void doCollision(SimpleCollisionItem c) {
         
         // we're going to fetch what he wants us to be
-        final FloatVector hisMomentum = c.getCollisionMomentum((CollisionItem)this);
+        final FloatVector hisMomentum = c.getCollisionMomentum((SimpleCollisionItem)this);
         
         // now we remove our mass from that
         hisMomentum.scale(1/getMass());
