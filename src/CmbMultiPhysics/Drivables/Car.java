@@ -58,7 +58,7 @@ public class Car extends TrackedMotionItem implements Drivable {
         resetAcceleration();
     }
     
-    public void setDirection(FloatVector direction) {
+    public synchronized void setDirection(FloatVector direction) {
         
         ///System.out.println("setting direction: " + direction.toString() + direction.unitVector().toString() + Float.toString(getVelocity().getMagnitude()));
         

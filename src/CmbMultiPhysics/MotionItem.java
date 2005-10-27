@@ -239,7 +239,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *  @param c the object we're colliding with
      *  @return The new momentum of the caller
      */
-    public FloatVector getCollisionMomentum(SimpleCollisionItem c) {
+    public synchronized FloatVector getCollisionMomentum(SimpleCollisionItem c) {
         //return (c.getMomentum((CollisionItem) this));
         
         // them    us    them     us
@@ -287,7 +287,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *  @param c object to collide with (colliding object will determine collision semantics)
      *
      */
-    public void doCollision(SimpleCollisionItem c) {
+    public synchronized void doCollision(SimpleCollisionItem c) {
         
         // we're going to fetch what he wants us to be
         final FloatVector hisMomentum = c.getCollisionMomentum((SimpleCollisionItem)this);
@@ -368,7 +368,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *
      * @param deltaT measure of time to compute
      */
-    private void computeVelocity(float deltaT) {
+    private synchronized void computeVelocity(float deltaT) {
         
         // V = t*Fs + Vo
         // Velocity = deltaT * forceSum + Velocity(t-1);

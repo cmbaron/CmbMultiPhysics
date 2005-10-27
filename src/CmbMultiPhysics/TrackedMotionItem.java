@@ -81,7 +81,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *
      *
      */
-    public void correctPosition(ComplexCollisionItem c) {
+    public synchronized void correctPosition(ComplexCollisionItem c) {
         
         // these have to be about the least optimized routines ever
         FloatVector dist2Center = ComplexCollider.dist2Center(getShape(), c.getShape());
@@ -112,7 +112,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *  to unmovable colliders.
      *
      */
-    public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
+    public synchronized FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
         Rectangle2D theirPosition = c.getShape().getBounds2D();
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
         FloatVector dist2Center = ComplexCollider.dist2Center(getShape(), theirIntendedShape);
