@@ -239,7 +239,13 @@ public class FloatVector implements Cloneable, java.io.Serializable {
      * @return the angle between this vector and the vector given in degrees
      */
     public float getAngle(final FloatVector U) {
-        return((float)Math.toDegrees((float)Math.acos((this.dotProduct(U)/(this.getMagnitude()*U.getMagnitude())))));
+        float angle = (float)Math.toDegrees((float)Math.acos((this.dotProduct(U)/(this.getMagnitude()*U.getMagnitude()))));
+        // use a determinant to find the direction of angle
+        if ((this.getX() * U.getY() - this.getY() * U.getX()) < 0) {
+            return -1*angle;
+        } else {
+            return angle;
+        }
     }
     
     /** Creates a new Vector the specified number of degrees 

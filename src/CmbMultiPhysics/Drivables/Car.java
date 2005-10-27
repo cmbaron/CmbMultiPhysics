@@ -66,6 +66,14 @@ public class Car extends TrackedMotionItem implements Drivable {
         
         // now we'll cheat and fix our velocity this way
         if (getVelocity().getMagnitude() > 0.0f) {
+            
+            // more cheating: set the max turning angle to 1 (remember how quick we tick though) degrees
+            float angle = getVelocity().getAngle(direction);
+            if (Math.abs(angle) > 1f) {
+                direction = getVelocity().getRotation(angle/Math.abs(angle)*1f);
+                //System.out.println(Float.toString(angle));
+            }
+            
             setVelocity(direction.unitVector().scale(getVelocity().getMagnitude()));
         }
     }
