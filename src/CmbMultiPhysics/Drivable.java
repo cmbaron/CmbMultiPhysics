@@ -9,6 +9,7 @@
  */
 
 package CmbMultiPhysics;
+import java.awt.Shape;
 
 /** Drivable Controls
  *
@@ -29,4 +30,7 @@ public interface Drivable {
     public FloatVector getVelocity();
     public void setDirection(FloatVector f);
     public FloatVector getPosition();
+    
+    // todo: uncertain about this
+    public Shape getShape();
 }

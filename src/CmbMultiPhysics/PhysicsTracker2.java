@@ -86,7 +86,7 @@ public class PhysicsTracker2 extends Tracker implements Runnable  {
                 if (ComplexCollisionItem.class.isInstance(inbound) && ComplexCollisionItem.class.isInstance(collidingWith)) {
                     ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
                     
-                    //((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
+                    ((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
                 }
             }
         }

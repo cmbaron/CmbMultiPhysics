@@ -72,7 +72,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public Shape getShape() {
         
         
-        return(new RectanglePoint(getPosition(), 2));
+        return(new RectanglePoint(getPosition(), 4));
         
     }
     
@@ -103,7 +103,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         FloatVector intendedPosition = ((FloatVector)d2cuv.clone()).add(ourCenter);
         
         // tell our colliding body what we want to do about our overlap
-        setPosition((FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone()));
+        System.out.println("1 Going to move to: " + intendedPosition.toString());
+        final FloatVector actuallyMovingTo = (FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone());
+        System.out.println("1 Actually moving to: " + actuallyMovingTo);
+        setPosition(actuallyMovingTo);
         
     }
     
@@ -128,9 +131,11 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         // this is essentially a direction vector pointing the other way (so
         // we know where to move
         FloatVector d2cuv = dist2Center.unitVector().scale(-1f*intersectionDimension.getMagnitude()/2);
+        final FloatVector f = d2cuv.add(ourCenter);
+        System.out.println("2 Other object wants to go to: " + intention.toString());
+        System.out.println("2 We're going to: " + f.toString());
         
-        
-        setPosition(d2cuv.add(ourCenter));
+        setPosition(f);
         
         // tell them they can go where they want
         return((FloatVector)intention.clone());
