@@ -85,8 +85,9 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     public Shape getBaseShape() {
-        AffineTransform af = new AffineTransform();
-        return(af.createTransformedShape(baseShape));
+        //AffineTransform af = new AffineTransform();
+        //return(af.createTransformedShape(baseShape));
+        return(baseShape);
     }
     
     
@@ -137,9 +138,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     public synchronized Shape getShape() {
-        AffineTransform af = new AffineTransform();
+        //AffineTransform af = new AffineTransform();
         
-        return ((Shape)af.createTransformedShape(currentShape));
+        //return ((Shape)af.createTransformedShape(currentShape));
+        return(currentShape);
     }
     
     private void setShape(Shape s) {
