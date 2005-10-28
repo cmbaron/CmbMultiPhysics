@@ -15,9 +15,9 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     float x;
     float y;
     
-    public static FloatVector XVECTOR = new FloatVector(1,0);
-    public static FloatVector YVECTOR = new FloatVector(0,1);
-   
+    private final static FloatVector XVECTOR = new FloatVector(1,0);
+    private final static FloatVector YVECTOR = new FloatVector(0,1); 
+    
     /** Creates a new instance of FloatVector */
     public FloatVector() {
         x = 0f;
@@ -32,6 +32,14 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     {
         this.x = x;
         this.y = y;
+    }
+    
+    public static FloatVector getNorth() {
+        return ((FloatVector)YVECTOR.clone());
+    }
+    
+    public static FloatVector getWest() {
+        return ((FloatVector) XVECTOR.clone());
     }
     
     /** sees if two doublevectors are equal

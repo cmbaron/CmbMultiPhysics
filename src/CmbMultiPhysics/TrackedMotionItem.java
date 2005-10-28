@@ -75,22 +75,39 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         
         Polygon p = new Polygon();
+        //Rectangle2D p = new RectanglePoint(getPosition(), 5);
+                
         p.addPoint(0,5);
-        p.addPoint(-5,0);
-        p.addPoint(5,0);
+        p.addPoint(-5,-5);
+        p.addPoint(5,-5);
         
-        AffineTransform af = AffineTransform.getTranslateInstance(getPosition().getX(), getPosition().getY());
+        float angle;
+        
+        FloatVector x = FloatVector.getNorth();
+        if (getVelocity().getMagnitude() > 0) {
+            angle = x.getAngle(getVelocity());
+        } else {
+            angle = x.getAngle(FloatVector.getNorth());
+        }
+        
+        AffineTransform af = new AffineTransform();
+        
+        //af.scale(0.5,0.5);
+  
+        af.rotate(Math.toRadians(angle));
         
         Shape shape = af.createTransformedShape(p);
         
-        FloatVector x = FloatVector.XVECTOR;
-        float angle = x.getAngle(getVelocity());
+        af.setToTranslation(getPosition().getX(), getPosition().getY());
+
+        shape = af.createTransformedShape(shape);
         
-        af = AffineTransform.getRotateInstance(angle);
+        //System.out.println(shape.getBounds2D());
         
+        //System.out.println(getPosition().toString());
         
-        return (new RectanglePoint(getPosition(), 5));
-        //return(af.createTransformedShape(shape));
+        //return (new RectanglePoint(getPosition(), 5));
+        return(shape);
         
     }
     
@@ -122,7 +139,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         // unit vector opposite distance to center
         // this is essentially a direction vector pointing the other way (so
-        // we know where to move        
+        // we know where to move
         FloatVector d2cuv = dist2Center.unitVector().scale(intersectionDimension.getMagnitude()/2);
         
         // get a new point to where we want to go
@@ -136,9 +153,9 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *
      */
     public synchronized void correctPosition(ComplexCollisionItem c) {
-
+        
         if (!getCollidable())
-          return;
+            return;
         
         // get a new point to where we want to go
         FloatVector intendedPosition = positionCorrection(c.getShape());
@@ -159,12 +176,12 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public synchronized FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
         Rectangle2D theirPosition = c.getShape().getBounds2D();
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
-      
+        
         ///System.out.println("2 Other object wants to go to: " + intention.toString());
         FloatVector moveTo = positionCorrection(theirIntendedShape);
         ///System.out.println("2 We're going to: " + moveTo.toString());
         
-        if (getCollidable()) 
+        if (getCollidable())
             setPosition(moveTo);
         
         // tell them they can go where they want
