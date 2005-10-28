@@ -32,14 +32,30 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     
     PhysicsTracker2 pt;
     Shape currentShape;
+    Shape baseShape;
     
     /** Creates a new instance of TrackedMotionItem */
     public TrackedMotionItem() {
         super();
+        initTMI();
+    }
+    
+    private void initTMI() {
         pt = pt.getInstance();
         pt.registerItem(this);
-        setShape(new Rectangle2D.Float(0f,0f,0f,0f));
+        Polygon p = new Polygon();
+        //Rectangle2D p = new RectanglePoint(getPosition(), 5);
+                
+        // make a house.
+        p.addPoint(0,5);
+        p.addPoint(-5,0);
+        p.addPoint(-5,-5);
+        p.addPoint(5,-5);
+        p.addPoint(5,0);
+        setBaseShape(p);
+        computeShape();
     }
+    
     /**
      * Ticks forward and phones the tracker with its new position
      *
@@ -64,6 +80,15 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         pt.registerItem(this);
     }
     
+    public void setBaseShape(Shape inShape) {
+        baseShape = inShape;
+    }
+    
+    public Shape getBaseShape() {
+        AffineTransform af = new AffineTransform();
+        return(af.createTransformedShape(baseShape));
+    }
+    
     
     /**
      * Makes a fake-me-out shape to be used for object detection.  This really
@@ -77,16 +102,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public Shape computeShape() {
         
-        
-        Polygon p = new Polygon();
-        //Rectangle2D p = new RectanglePoint(getPosition(), 5);
-                
-        // make a house.
-        p.addPoint(0,5);
-        p.addPoint(-5,0);
-        p.addPoint(-5,-5);
-        p.addPoint(5,-5);
-        p.addPoint(5,0);
+        Shape shape = getBaseShape();
+
 
         float angle;
         
@@ -101,9 +118,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         //af.scale(0.5,0.5);
   
+        
         af.rotate(Math.toRadians(angle));
         
-        Shape shape = af.createTransformedShape(p);
+        shape = af.createTransformedShape(shape);
         
         af.setToTranslation(getPosition().getX(), getPosition().getY());
 
@@ -119,7 +137,9 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     public synchronized Shape getShape() {
-        return ((Shape)currentShape);
+        AffineTransform af = new AffineTransform();
+        
+        return ((Shape)af.createTransformedShape(currentShape));
     }
     
     private void setShape(Shape s) {
