@@ -92,6 +92,7 @@ public class RubberBand implements ForceItem {
                 return(dv);
             }
         } else {
+            System.out.println("we're borked");
             setBroken(true);
         }
         

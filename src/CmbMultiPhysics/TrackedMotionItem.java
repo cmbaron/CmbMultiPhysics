@@ -31,12 +31,14 @@ import java.awt.geom.AffineTransform;
 public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,ComplexCollisionItem {
     
     PhysicsTracker2 pt;
+    Shape currentShape;
     
     /** Creates a new instance of TrackedMotionItem */
     public TrackedMotionItem() {
         super();
         pt = pt.getInstance();
         pt.registerItem(this);
+        setShape(new Rectangle2D.Float(0f,0f,0f,0f));
     }
     /**
      * Ticks forward and phones the tracker with its new position
@@ -45,6 +47,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public void tickForward(float deltaT) {
         super.tickForward(deltaT);
+        setShape(computeShape());
         // tell our master that we've done something
         //pt.registerTick(this);
     }
@@ -72,7 +75,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      * @returns shape at coordinate of object
      *
      */
-    public Shape getShape() {
+    public Shape computeShape() {
         
         
         Polygon p = new Polygon();
@@ -115,7 +118,20 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
     }
     
-    private FloatVector positionCorrection(final Shape theirShape) {
+    public synchronized Shape getShape() {
+        return ((Shape)currentShape);
+    }
+    
+    private void setShape(Shape s) {
+        currentShape = s;
+    }
+    
+    public void setPosition(FloatVector p) {
+        super.setPosition(p);
+        computeShape();
+    }
+    
+    private FloatVector positionCorrection(final Shape theirShape, float divisor) {
         
         final Shape ourShape = getShape();
         
@@ -172,7 +188,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
             return;
         
         // get a new point to where we want to go
-        FloatVector intendedPosition = positionCorrection(c.getShape());
+        FloatVector intendedPosition = positionCorrection(c.getShape(), 2f);
         
         // tell our colliding body what we want to do about our overlap
         ///System.out.println("1 Going to move to: " + intendedPosition.toString());
@@ -192,7 +208,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
         
         ///System.out.println("2 Other object wants to go to: " + intention.toString());
-        FloatVector moveTo = positionCorrection(theirIntendedShape);
+        FloatVector moveTo = positionCorrection(theirIntendedShape, 1f);
         ///System.out.println("2 We're going to: " + moveTo.toString());
         
         if (getCollidable())
