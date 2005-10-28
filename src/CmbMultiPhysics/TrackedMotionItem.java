@@ -76,36 +76,59 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
     }
     
+    private FloatVector positionCorrection(final Shape theirShape) {
+        
+        final Shape ourShape = getShape();
+        
+        FloatVector dist2Center = ComplexCollider.dist2Center(ourShape, theirShape);
+        // these are points.
+        FloatVector ourCenter = ComplexCollider.getCenterPoint(ourShape);
+        
+        // rectangle of intersection
+        Rectangle2D intersection = ourShape.getBounds2D().createIntersection(theirShape.getBounds());
+        
+        // dimensions of the intersection
+        FloatVector intersectionDimension = new FloatVector((float)intersection.getWidth(), (float)intersection.getHeight());
+        
+        FloatVector ourDimension = new FloatVector((float)ourShape.getBounds2D().getWidth(), (float)ourShape.getBounds2D().getHeight());
+        
+        FloatVector difference = ((FloatVector)intersectionDimension.clone()).subtract(ourDimension);
+        
+        // check for perfect on-axis collision,
+        // we don't want to shift over 4, if we don't need to.
+        if (difference.getX() == 0) {
+            intersectionDimension.setX(0);
+        } else if (difference.getY() == 0) {
+            intersectionDimension.setY(0);
+        }
+        
+        // unit vector opposite distance to center
+        // this is essentially a direction vector pointing the other way (so
+        // we know where to move        
+        FloatVector d2cuv = dist2Center.unitVector().scale(intersectionDimension.getMagnitude()/2);
+        
+        // get a new point to where we want to go
+        FloatVector movetoPosition = ((FloatVector)d2cuv.clone()).add(ourCenter);
+        
+        return (movetoPosition);
+    }
     
     /** This defines the position-collision behavior of this object.
      *
      *
      */
     public synchronized void correctPosition(ComplexCollisionItem c) {
-        
-        // these have to be about the least optimized routines ever
-        FloatVector dist2Center = ComplexCollider.dist2Center(getShape(), c.getShape());
-        
-        // these are points.
-        FloatVector ourCenter = ComplexCollider.getCenterPoint(getShape());
-        
-        Rectangle2D intersection = getShape().getBounds2D().createIntersection(c.getShape().getBounds());
-        
-        // dimensions of the intersection box
-        FloatVector intersectionDimension = new FloatVector((float)intersection.getWidth(), (float)intersection.getHeight());
-        
-        // unit vector opposite distance to center
-        // this is essentially a direction vector pointing the other way (so
-        // we know where to move
-        FloatVector d2cuv = dist2Center.unitVector().scale(-1f*intersectionDimension.getMagnitude()/2);
+
+        if (!getCollidable())
+          return;
         
         // get a new point to where we want to go
-        FloatVector intendedPosition = ((FloatVector)d2cuv.clone()).add(ourCenter);
+        FloatVector intendedPosition = positionCorrection(c.getShape());
         
         // tell our colliding body what we want to do about our overlap
-        System.out.println("1 Going to move to: " + intendedPosition.toString());
+        ///System.out.println("1 Going to move to: " + intendedPosition.toString());
         final FloatVector actuallyMovingTo = (FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone());
-        System.out.println("1 Actually moving to: " + actuallyMovingTo);
+        ///System.out.println("1 Actually moving to: " + actuallyMovingTo);
         setPosition(actuallyMovingTo);
         
     }
@@ -118,24 +141,13 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public synchronized FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
         Rectangle2D theirPosition = c.getShape().getBounds2D();
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
-        FloatVector dist2Center = ComplexCollider.dist2Center(getShape(), theirIntendedShape);
-        Rectangle2D intersection = getShape().getBounds2D().createIntersection(theirIntendedShape);
+      
+        ///System.out.println("2 Other object wants to go to: " + intention.toString());
+        FloatVector moveTo = positionCorrection(theirIntendedShape);
+        ///System.out.println("2 We're going to: " + moveTo.toString());
         
-        // these are points.
-        FloatVector ourCenter = ComplexCollider.getCenterPoint(getShape());
-        
-        // dimensions of the intersection box
-        FloatVector intersectionDimension = new FloatVector((float)intersection.getWidth(), (float)intersection.getHeight());
-        
-        // unit vector opposite distance to center
-        // this is essentially a direction vector pointing the other way (so
-        // we know where to move
-        FloatVector d2cuv = dist2Center.unitVector().scale(-1f*intersectionDimension.getMagnitude()/2);
-        final FloatVector f = d2cuv.add(ourCenter);
-        System.out.println("2 Other object wants to go to: " + intention.toString());
-        System.out.println("2 We're going to: " + f.toString());
-        
-        setPosition(f);
+        if (getCollidable()) 
+            setPosition(moveTo);
         
         // tell them they can go where they want
         return((FloatVector)intention.clone());

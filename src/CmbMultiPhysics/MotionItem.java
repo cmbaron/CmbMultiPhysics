@@ -276,7 +276,9 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         theirNewVelocity.add(((FloatVector)ourVelocity.clone()).scale((2 * ourMass)/(ourMass+theirMass)));
         
         // now we set our velocity, and tell them their new momentum
-        setVelocity(ourNewVelocity);
+        if (getCollidable()) 
+            setVelocity(ourNewVelocity);
+        
         return(theirNewVelocity);
     }
     
@@ -288,6 +290,9 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *
      */
     public synchronized void doCollision(SimpleCollisionItem c) {
+    
+        if (!getCollidable()) 
+            return;
         
         // we're going to fetch what he wants us to be
         final FloatVector hisMomentum = c.getCollisionMomentum((SimpleCollisionItem)this);
