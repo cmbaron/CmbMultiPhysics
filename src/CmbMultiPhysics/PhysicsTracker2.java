@@ -13,6 +13,7 @@ import CmbMultiPhysics.Track.Tracker;
 import java.util.Iterator;
 import java.util.Vector;
 import CmbMultiPhysics.Collisions.*;
+import java.awt.geom.Area;
 
 /**
  *
@@ -63,6 +64,10 @@ public class PhysicsTracker2 extends Tracker implements Runnable  {
             try {
                 PhysicsTrackable item = (PhysicsTrackable) i.next();
                 item.tickForward(deltaT);
+                
+                // this will return objects inside our bounding box
+                // it is a rough estimation
+                
                 Vector objectsInCollision = super.getIntersectingObjects(item.getShape());
                 doCollisions(item, objectsInCollision);
                 //System.out.println("tick");
@@ -83,10 +88,19 @@ public class PhysicsTracker2 extends Tracker implements Runnable  {
             
             // we have to make sure we don't collide with ourselves
             if (inbound != collidingWith) {
-                if (ComplexCollisionItem.class.isInstance(inbound) && ComplexCollisionItem.class.isInstance(collidingWith)) {
-                    ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
-                    
-                    ((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
+                
+                // this will do a much more refined check of collisions
+                Area inboundArea = new Area(inbound.getShape());
+                Area collidingArea = new Area(collidingWith.getShape());
+                inboundArea.intersect(collidingArea);
+                
+                if (!inboundArea.isEmpty()) {
+                    // high precision collision check successful.
+                    if (ComplexCollisionItem.class.isInstance(inbound) && ComplexCollisionItem.class.isInstance(collidingWith)) {
+                        ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
+                        
+                        ((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
+                    }
                 }
             }
         }

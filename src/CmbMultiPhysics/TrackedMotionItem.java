@@ -13,6 +13,7 @@ package CmbMultiPhysics;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Area;
 import java.awt.Polygon;
 //import CmbMultiPhysics.Track.Trackable;
 import CmbMultiPhysics.TickForwardable;
@@ -77,10 +78,13 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         Polygon p = new Polygon();
         //Rectangle2D p = new RectanglePoint(getPosition(), 5);
                 
+        // make a house.
         p.addPoint(0,5);
+        p.addPoint(-5,0);
         p.addPoint(-5,-5);
         p.addPoint(5,-5);
-        
+        p.addPoint(5,0);
+
         float angle;
         
         FloatVector x = FloatVector.getNorth();
@@ -120,7 +124,17 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         FloatVector ourCenter = ComplexCollider.getCenterPoint(ourShape);
         
         // rectangle of intersection
-        Rectangle2D intersection = ourShape.getBounds2D().createIntersection(theirShape.getBounds());
+        //Rectangle2D intersection = ourShape.getBounds2D().createIntersection(theirShape.getBounds());
+        
+        // enhancement of above
+        // this version uses an area to get our intersection, instead of intersecting stupid
+        // rectangular projection around our shape
+        Area ourArea = new Area(ourShape);
+        Area theirArea = new Area(theirShape);
+        
+        ourArea.intersect(theirArea);
+        
+        Rectangle2D intersection = ourArea.getBounds2D();
         
         // dimensions of the intersection
         FloatVector intersectionDimension = new FloatVector((float)intersection.getWidth(), (float)intersection.getHeight());

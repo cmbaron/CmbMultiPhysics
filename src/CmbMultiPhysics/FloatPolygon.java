@@ -42,7 +42,7 @@ public class FloatPolygon implements Shape
      * Construct a polygon.
      * @param  _vertex  Corner points of polygon
      */
-    public FloatPolygon (Point2D [] _vertex)
+    public void setupPolygon (Point2D [] _vertex)
     {
         vertex = _vertex;
         nVertices = vertex.length;
@@ -56,6 +56,27 @@ public class FloatPolygon implements Shape
         
 
     } // Polygon
+    
+    public FloatPolygon (Point2D [] _vertex) {
+        setupPolygon(_vertex);
+    }
+    
+    /** This constructor creates a polygon using the vectors
+     * supplied, relative to the point p.
+     *
+     * @param verticies vectoral (relative) locations of the points
+     * @param p the point all vectors are relative to
+     */
+    public FloatPolygon (Point2D p, FloatVector[] verticies) {
+        Point2D[] points = new Point2D[verticies.length];
+        for (int x = 0; x < points.length; x++) {
+            verticies[x].add(new FloatVector((float)p.getX(), (float)p.getY()));
+            points[x] = new Point2D.Float(verticies[x].getX(), verticies[x].getY());
+        }
+        
+        setupPolygon(points);
+        
+    }
     
 
 

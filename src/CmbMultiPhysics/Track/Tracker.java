@@ -104,6 +104,7 @@ public class Tracker {
         
         final Rectangle2D boundingBox = object.getBounds2D();
         
+        
         switch (parameter) {
             case CONTAINS:
                 if (boundry.contains(boundingBox)) {
