@@ -52,6 +52,8 @@ public class FloatPolygon implements Shape
             path.lineTo ((float) vertex [i].getX (), (float) vertex [i].getY ());
         }; // for
         path.closePath ();
+        
+        
 
     } // Polygon
     

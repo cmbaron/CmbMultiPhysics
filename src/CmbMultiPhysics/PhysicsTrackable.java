@@ -9,6 +9,7 @@
  */
 
 package CmbMultiPhysics;
+import CmbMultiPhysics.Track.Tracker;
 
 /**
  *
@@ -17,4 +18,6 @@ package CmbMultiPhysics;
 public interface PhysicsTrackable extends CmbMultiPhysics.Track.Trackable {
     public void tickForward(float deltaT);
     
+    //public void setComparisonType(Tracker.ContainerParameters parameters);
+    //public Tracker.ContainerParameters getComparisonType();
 }

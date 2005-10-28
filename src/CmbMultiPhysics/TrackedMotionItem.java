@@ -13,9 +13,11 @@ package CmbMultiPhysics;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.Polygon;
 //import CmbMultiPhysics.Track.Trackable;
 import CmbMultiPhysics.TickForwardable;
 import CmbMultiPhysics.Collisions.*;
+import java.awt.geom.AffineTransform;
 
 
 /**
@@ -72,7 +74,23 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public Shape getShape() {
         
         
-        return(new RectanglePoint(getPosition(), 4));
+        Polygon p = new Polygon();
+        p.addPoint(0,5);
+        p.addPoint(-5,0);
+        p.addPoint(5,0);
+        
+        AffineTransform af = AffineTransform.getTranslateInstance(getPosition().getX(), getPosition().getY());
+        
+        Shape shape = af.createTransformedShape(p);
+        
+        FloatVector x = FloatVector.XVECTOR;
+        float angle = x.getAngle(getVelocity());
+        
+        af = AffineTransform.getRotateInstance(angle);
+        
+        
+        return (new RectanglePoint(getPosition(), 5));
+        //return(af.createTransformedShape(shape));
         
     }
     

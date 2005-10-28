@@ -15,6 +15,8 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     float x;
     float y;
     
+    public static FloatVector XVECTOR = new FloatVector(1,0);
+    public static FloatVector YVECTOR = new FloatVector(0,1);
    
     /** Creates a new instance of FloatVector */
     public FloatVector() {
