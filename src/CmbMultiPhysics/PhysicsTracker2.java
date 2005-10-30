@@ -27,6 +27,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     
     static PhysicsTracker2 _instance = null;
     private int rateInMillis;
+    private int averageRate;
     Vector collided;
     private Thread collisionEngineThread;
     private Thread treeBottomTickingThread;
@@ -38,7 +39,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     }
     
     public boolean tryGetTicker() {
-       
+        
         if (tickerSignal > 0) {
             tickerSignal--;
             return(true);
@@ -49,7 +50,8 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     
     /** Creates a new instance of PhysicsTracker2 */
     public PhysicsTracker2() {
-        rateInMillis = 5;
+        rateInMillis = 50;
+        averageRate = rateInMillis;
         setRoot(this);
         setParent(this);
         setShape(new Rectangle2D.Float(-1000f,-1000f,2000f,2000f));
@@ -61,13 +63,45 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     public void startTreeTicker() {
         Runnable r = new Runnable() {
             public void run() {
+                
+                float avgRate = rateInMillis;
+                long sleepRate = rateInMillis;
+                long rate = rateInMillis;
+                
+                int scalar = 1;
+                
+                // self tuning.  this is the highest latency thread, we need
+                // to synchronize the other ones at the rate of this, at least
+                // they would be wasting cycles grinding away unnecessarily.
+                
                 while (true) {
                     try {
-                        Thread.sleep(rateInMillis);
-                        //System.out.println("getting here");
-                        tickTheBottom();
-                        //tick();
+                        Thread.sleep(rateInMillis/scalar);
+                        rate = Calendar.getInstance().getTimeInMillis();
+                        tick();
+                        //tickTheBottom();
                         signalTicker();
+                        rate = Calendar.getInstance().getTimeInMillis() - rate;
+                        if (rate > avgRate) {
+                            
+                            sleepRate = 0;
+                            avgRate = (float) (avgRate*0.999 + rate*0.001);
+                            rateInMillis = (int)avgRate*scalar;
+                            
+                            //System.out.println("new expected rate: " + rateInMillis);
+                        } else {
+                            sleepRate = rateInMillis - rate;
+                            if (avgRate > rateInMillis/scalar) {
+                                avgRate = (float) (avgRate*0.999 + rate*0.001);
+                                
+                                rateInMillis = (int)avgRate*scalar;
+                            }
+                        
+                        }
+                        
+                        //System.out.println("getting here");
+                        //tickTheBottom();
+                        
                         
                         
                     } catch (Exception e) {
@@ -91,7 +125,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 
                 while (true) {
                     try {
-                        Thread.sleep(rateInMillis);
+                        Thread.sleep(rateInMillis/20);
                         //System.out.println("getting here");
                         if (tryGetTicker()) {
                             //tickerSignal = 0;
@@ -125,16 +159,39 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     public void run() {
         Calendar cal = Calendar.getInstance();
         
+        
         long mills = cal.getTimeInMillis();
-        long rate = rateInMillis;
+        long rate;
+        long sleepRate = rateInMillis;
         float runRate = (float)rateInMillis/1000;
-        long waitRate = rateInMillis;
+        long runRateMillis = rateInMillis;
+        long calc;
+        
         
         while (true) {
             try {
-                Thread.sleep(waitRate);
-                 
-                tickForward(runRate);
+                
+                
+                
+                Thread.sleep(sleepRate);
+                rate = Calendar.getInstance().getTimeInMillis();
+                tickForward((float)rateInMillis/1000);
+                rate = Calendar.getInstance().getTimeInMillis() - rate;
+                if (rate > rateInMillis) {
+                    
+                    sleepRate = 0;
+                    //runRate = (float) (runRateMillis*0.9 + rate*0.1);
+                    //runRateMillis = (long)runRate;
+                    //rateInMillis = (int)runRateMillis;
+                    //System.out.println("new expected rate: " + rateInMillis);
+                } else {
+                    sleepRate = rateInMillis - rate;
+                    //if (runRateMillis > 30) {
+                    //  runRate = (float) (runRateMillis*0.9 + rate*0.1);
+                    //   runRateMillis = (long)runRate;
+                    //   rateInMillis = (int)runRateMillis;
+                    //}
+                }
                 
                 
             } catch (Exception e) {
@@ -232,8 +289,8 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
             
             
             
-                objectsInCollision.addAll(getIntersectingObjects(t.getShape(), PhysicsTrackable.class));
-           
+            objectsInCollision.addAll(getIntersectingObjects(t.getShape(), PhysicsTrackable.class));
+            
             
             
             

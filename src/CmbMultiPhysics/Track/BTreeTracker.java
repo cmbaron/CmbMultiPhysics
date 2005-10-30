@@ -151,7 +151,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         
     }
     
-    private void splitUp() {
+    private synchronized void splitUp() {
         
         //System.out.println("splitting up");
         
@@ -196,7 +196,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         b1.setRoot(getRoot());
         b2.setRoot(getRoot());
         
-        if (t1.getWidth() < 20 && t1.getHeight() < 20) {
+        if (t1.getWidth() < 100 && t1.getHeight() < 100) {
             b1.setSmallest(true);
             b2.setSmallest(true);
         }
@@ -234,7 +234,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         leaf = b;
     }
     
-    public void registerItem(final Trackable t) {
+    public synchronized void registerItem(final Trackable t) {
         addItemToTracker(t);
     }
     
@@ -361,18 +361,18 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     }
     
     public void tick() {
-    /*
-        if (isLeaf()) {
-     
-            Runnable r = new Runnable () {
+        /*
+        //if (!isLeaf()) {
+            
+            Runnable r = new Runnable() {
                 public void run() {processTick();}
             };
             Thread t = new Thread(r);
             t.start();
-        } else {
-     */
-        processTick();
-        // }
+        //} else {*/
+            
+            processTick();
+        //}
         
         
         

@@ -48,10 +48,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         // make a house.
         p.addPoint(0,5);
-        p.addPoint(-5,0);
+        //p.addPoint(-5,0);
         p.addPoint(-5,-5);
         p.addPoint(5,-5);
-        p.addPoint(5,0);
+        //p.addPoint(5,0);
         alive = false;
         setBaseShape(p);
         setShape(getBaseShape());
@@ -134,7 +134,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         AffineTransform af = new AffineTransform();
         
-        //af.scale(0.5,0.5);
+        af.scale(0.5,0.5);
         
         
         af.rotate(Math.toRadians(angle));
