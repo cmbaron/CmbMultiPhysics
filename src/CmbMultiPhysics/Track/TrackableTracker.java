@@ -86,11 +86,16 @@ public class TrackableTracker extends Tracker implements Trackable {
     }
     
     public Shape getShape() {
+        //System.out.println("got asked for our shape" + ourShape.toString());
         return ourShape;
     }
     
     public void setShape(Shape s) {
         ourShape = s;
     }
+    /*
+    public int hashCode() {
+        return(getShape().hashCode());
+    }*/
     
 }

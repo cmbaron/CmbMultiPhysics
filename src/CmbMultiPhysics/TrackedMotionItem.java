@@ -19,7 +19,7 @@ import java.awt.Polygon;
 import CmbMultiPhysics.TickForwardable;
 import CmbMultiPhysics.Collisions.*;
 import java.awt.geom.AffineTransform;
-
+import CmbMultiPhysics.Track.*;
 
 /**
  * The TrackedMotionItem extends MotionItem and implements Trackable.
@@ -28,11 +28,12 @@ import java.awt.geom.AffineTransform;
  *
  * @author Administrator
  */
-public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,ComplexCollisionItem {
+public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,ComplexCollisionItem,Tickable {
     
     PhysicsTracker2 pt;
     Shape currentShape;
     Shape baseShape;
+    boolean alive;
     
     /** Creates a new instance of TrackedMotionItem */
     public TrackedMotionItem() {
@@ -41,19 +42,29 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     private void initTMI() {
-        pt = pt.getInstance();
-        pt.registerItem(this);
+        
         Polygon p = new Polygon();
         //Rectangle2D p = new RectanglePoint(getPosition(), 5);
-                
+        
         // make a house.
         p.addPoint(0,5);
         p.addPoint(-5,0);
         p.addPoint(-5,-5);
         p.addPoint(5,-5);
         p.addPoint(5,0);
+        alive = false;
         setBaseShape(p);
-        computeShape();
+        setShape(getBaseShape());
+        pt = pt.getInstance();
+        pt.registerItem(this);
+    }
+    
+    public boolean isAlive() {
+        return alive;
+    }
+    
+    public void setAlive(boolean alive) {
+        this.alive = alive;
     }
     
     /**
@@ -63,7 +74,9 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public void tickForward(float deltaT) {
         super.tickForward(deltaT);
-        setShape(computeShape());
+        if (!isAlive()) {
+            setAlive(true);
+        }
         // tell our master that we've done something
         //pt.registerTick(this);
     }
@@ -76,6 +89,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public TrackedMotionItem(FloatVector position, float mass) {
         super(position, mass);
+        initTMI();
         pt = pt.getInstance();
         pt.registerItem(this);
     }
@@ -90,6 +104,12 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         return(baseShape);
     }
     
+    public synchronized void tick() {
+        
+        //System.out.println("computing shape");
+        setShape(computeShape());
+        
+    }
     
     /**
      * Makes a fake-me-out shape to be used for object detection.  This really
@@ -104,44 +124,49 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public Shape computeShape() {
         
         Shape shape = getBaseShape();
-
-
-        float angle;
         
-        FloatVector x = FloatVector.getNorth();
-        if (getVelocity().getMagnitude() > 0) {
-            angle = x.getAngle(getVelocity());
-        } else {
-            angle = x.getAngle(FloatVector.getNorth());
+        if (isAlive()) {
+            
+            
+            
+            float angle;
+            
+            FloatVector x = FloatVector.getNorth();
+            if (getVelocity().getMagnitude() > 0) {
+                angle = x.getAngle(getVelocity());
+            } else {
+                angle = x.getAngle(FloatVector.getNorth());
+            }
+            
+            AffineTransform af = new AffineTransform();
+            
+            //af.scale(0.5,0.5);
+            
+            
+            af.rotate(Math.toRadians(angle));
+            
+            shape = af.createTransformedShape(shape);
+            
+            af.setToTranslation(getPosition().getX(), getPosition().getY());
+            
+            shape = af.createTransformedShape(shape);
+            
+            //System.out.println(shape.getBounds2D());
+            
+            //System.out.println(getPosition().toString());
         }
-        
-        AffineTransform af = new AffineTransform();
-        
-        //af.scale(0.5,0.5);
-  
-        
-        af.rotate(Math.toRadians(angle));
-        
-        shape = af.createTransformedShape(shape);
-        
-        af.setToTranslation(getPosition().getX(), getPosition().getY());
-
-        shape = af.createTransformedShape(shape);
-        
-        //System.out.println(shape.getBounds2D());
-        
-        //System.out.println(getPosition().toString());
         
         //return (new RectanglePoint(getPosition(), 5));
         return(shape);
         
+        
     }
     
-    public synchronized Shape getShape() {
-        //AffineTransform af = new AffineTransform();
+    public Shape getShape() {
+        AffineTransform af = new AffineTransform();
         
-        //return ((Shape)af.createTransformedShape(currentShape));
-        return(currentShape);
+        return ((Shape)af.createTransformedShape(currentShape));
+        //return(currentShape);
     }
     
     private void setShape(Shape s) {
@@ -150,10 +175,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     
     public void setPosition(FloatVector p) {
         super.setPosition(p);
-        computeShape();
+        //computeShape();
     }
     
-    private FloatVector positionCorrection(final Shape theirShape, float divisor) {
+    private synchronized FloatVector positionCorrection(final Shape theirShape, float divisor) {
         
         final Shape ourShape = getShape();
         

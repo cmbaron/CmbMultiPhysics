@@ -75,8 +75,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         collidable = s;
     }
     
-    private void removeItem(ForceItem f)
-    {
+    private void removeItem(ForceItem f) {
         forceItems.remove(f);
     }
     
@@ -93,6 +92,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      * @return position vector.  you should take this as an absolute location, even though it's in a vector
      */
     public FloatVector getPosition() {
+        
         return (FloatVector)position.clone();
     }
     
@@ -101,7 +101,8 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *  @param position the position in which to put this MotionItem
      */
     public void setPosition(FloatVector position) {
-        this.position = position;
+        if (!Float.isNaN(position.getX()) && !Float.isNaN(position.getY()))
+            this.position = position;
     }
     
     
@@ -129,8 +130,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         this.mass = mass;
     }
     
-    public void addMass(float mass)
-    {
+    public void addMass(float mass) {
         this.mass += mass;
     }
     
@@ -141,7 +141,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         return (FloatVector)velocity.clone();
     }
     
-   
+    
     
     /** Combines forces using vector projections to accumulate the
      * "sum" of the forces acting on the body.
@@ -252,7 +252,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         // p = v*m => v = p/m
         FloatVector ourVelocity = ((FloatVector)us.clone()).scale(1/ourMass);
         FloatVector theirVelocity = ((FloatVector)them.clone()).scale(1/theirMass);
-      
+        
         // these equations are the result of the conservation of momentum
         // and the conservation of kinetic enegry equations
         //
@@ -261,7 +261,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         //   (credit: http://www.mcasco.com/p1lmc.html)
         
         FloatVector ourNewVelocity = (FloatVector)ourVelocity.clone();
-        // this is the first half of eq1.. 
+        // this is the first half of eq1..
         // v1 = v1i * (m1 - m2) / (m1 + m2)
         ourNewVelocity.scale((ourMass-theirMass)/(ourMass+theirMass));
         // second half of eq1
@@ -276,7 +276,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         theirNewVelocity.add(((FloatVector)ourVelocity.clone()).scale((2 * ourMass)/(ourMass+theirMass)));
         
         // now we set our velocity, and tell them their new momentum
-        if (getCollidable()) 
+        if (getCollidable())
             setVelocity(ourNewVelocity);
         
         return(theirNewVelocity);
@@ -290,8 +290,10 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *
      */
     public synchronized void doCollision(SimpleCollisionItem c) {
-    
-        if (!getCollidable()) 
+        
+        //System.out.println("doing collision between " + this.toString() + " and " + c.toString());
+        
+        if (!getCollidable())
             return;
         
         // we're going to fetch what he wants us to be
@@ -299,7 +301,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         
         // now we remove our mass from that
         hisMomentum.scale(1/getMass());
-       
+        
         // now we set our velocity
         setVelocity(hisMomentum);
         
@@ -320,7 +322,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         forceSum = new FloatVector();
         Vector equilibriumForces = new Vector();
         
-        Iterator<ForceItem> i = forceItems.iterator();
+        Iterator<ForceItem> i = getForceItems().iterator();
         
         while (i.hasNext()) {
             ForceItem forceItem = i.next();
@@ -383,8 +385,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         }
     }
     
-    public float distanceTo(PositionItem p)
-    {
+    public float distanceTo(PositionItem p) {
         FloatVector displacement = (FloatVector) p.getPosition().clone();
         displacement.subtract(getPosition());
         return (displacement.getMagnitude());
@@ -396,32 +397,32 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         int y2 = (int)p.getPosition().getY();
         double p1 = Math.pow(y2 - y1, 2);
         double p2 = Math.pow(x2 - x1, 2);
-        return Math.sqrt(p1 + p2); 
+        return Math.sqrt(p1 + p2);
          */
     }
     
     /** Compute tickwise position
      * @param deltaT measure of time for computation
      */
-    private void computePosition(float deltaT) {
+    private synchronized void computePosition(float deltaT) {
         
 /*
         System.out.println("before calcs");
         System.out.println(".5 * " + Double.toString(forceSum.getX()) + " * " + Double.toString(deltaT*deltaT) + " + "+ Double.toString(velocity.getX()));
         System.out.println(" * " + Double.toString(deltaT) + " + " + Double.toString(position.getX()) + " = ");
         System.out.println(Float.toString((float)((.5) * forceSum.getX()/getMass() * deltaT*deltaT + velocity.getX() * deltaT + position.getX())));
-  */      
+ */
         // this is the standard positional formula
         // dX = 1/2 * F(x) * t^2 + V(x)*t
         // X = dx + X(t-1)
         position.setX((float)((.5) * forceSum.getX()/getMass() * deltaT*deltaT + velocity.getX() * deltaT + position.getX()));
         position.setY((float)((.5) * forceSum.getY()/getMass() * deltaT*deltaT + velocity.getY() * deltaT + position.getY()));
-    /*    
+    /*
         System.out.println("after calcs");
         System.out.println(".5 * " + Double.toString(forceSum.getX()) + " * " + Double.toString(deltaT*deltaT) + " + "+ Double.toString(velocity.getX()));
         System.out.println(" * " + Double.toString(deltaT) + " + " + Double.toString(position.getX()) + " = ");
         System.out.println(Double.toString((.5) * forceSum.getX() * deltaT*deltaT + velocity.getX() * deltaT + position.getX()));
-      */  
+     */
         
     }
     
@@ -479,49 +480,45 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         
         this.debug = debug;
     }
-
+    
     /**
      * Holds value of property size.
      */
     private int size;
-
+    
     /**
      * Getter for property size.
      * @return Value of property size.
      */
     public int getSize() {
-
+        
         return this.size;
     }
     
     public void addSize(int size) {
-       this.size += size;
+        this.size += size;
     }
-
+    
     /**
      * Setter for property size.
      * @param size New value of property size.
      */
     public void setSize(int size) {
-
+        
         this.size = size;
     }
-
+    
+    public Vector getForceItems() {
+        return ((Vector)forceItems.clone());
+    }
+    
     /**
      * Setter for property velocity.
      * @param velocity New value of property velocity.
      */
     public void setVelocity(CmbMultiPhysics.FloatVector velocity) {
-        this.velocity = velocity;
-        /*
-        System.out.println("velocity" + velocity.toString() + Float.toHexString(velocity.getMagnitude()));
-        
-        try {
-            throw new Exception();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-         */
+        if (!Float.isNaN(velocity.getX()) && !Float.isNaN(velocity.getY()))
+            this.velocity = velocity;
     }
     
 }

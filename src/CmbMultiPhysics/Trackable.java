@@ -9,13 +9,14 @@
  */
 
 package CmbMultiPhysics;
+import CmbMultiPhysics.Track.Tickable;
 
 /**  This is a really stupid hack to get the physics modeling working while
  *  the physics tracker transitions to the generalized tracker.
  *
  * @author cbaron
  */
-public interface Trackable extends CmbMultiPhysics.Track.Trackable {
+public interface Trackable extends CmbMultiPhysics.Track.Trackable  {
     public void tickForward(float deltaT);
         /** Sets the position
      *
