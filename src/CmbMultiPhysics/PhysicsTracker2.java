@@ -65,8 +65,8 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                     try {
                         Thread.sleep(rateInMillis);
                         //System.out.println("getting here");
-                        //tickTheBottom();
-                        tick();
+                        tickTheBottom();
+                        //tick();
                         signalTicker();
                         
                         

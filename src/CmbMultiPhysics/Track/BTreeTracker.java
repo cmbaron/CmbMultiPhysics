@@ -10,6 +10,7 @@
 
 package CmbMultiPhysics.Track;
 
+import java.awt.event.ContainerAdapter;
 import java.util.Vector;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
@@ -34,7 +35,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         smallest = false;
     }
     
-
+    
     
     public boolean isSmallest() {
         return smallest;
@@ -109,7 +110,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
                     // lets throw it at the root.
                     passToParent(t);
                     //if (!getParent().equals(this)) {
-                      //getParent().upwardResorting();
+                    //getParent().upwardResorting();
                     //}
                 }
             }
@@ -229,15 +230,15 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         return leaf;
     }
     
-    public void setLeaf(boolean b) {
+    public void setLeaf(final boolean b) {
         leaf = b;
     }
     
-    public void registerItem(Trackable t) {
+    public void registerItem(final Trackable t) {
         addItemToTracker(t);
     }
     
-    private void addItemToTracker(Trackable t) {
+    private void addItemToTracker(final Trackable t) {
         
         Vector items;
         
@@ -260,24 +261,28 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             }
             
             // we need to check this again, incase we turned into a tree node
-            items = getItems();
             boolean placed = false;
-            
-            Iterator i = items.iterator();
-            while (i.hasNext()) {
-                Object obj = i.next();
+            final Rectangle2D bounds = t.getShape().getBounds2D();
+            if (isWithinBoundryParameters(bounds, getShape(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
+                items = getItems();
                 
-                if (BTreeTracker.class.isInstance(obj)) {
-                    BTreeTracker btreenode = (BTreeTracker) obj;
-                    if (btreenode.getShape().intersects(t.getShape().getBounds2D()) || btreenode.getShape().contains(t.getShape().getBounds2D())) {
-                        //System.out.println("putting 'er in");
-                        
-                        btreenode.addItemToTracker(t);
-                        placed = true;
+                
+                Iterator i = items.iterator();
+                while (i.hasNext()) {
+                    final Object obj = i.next();
+                    
+                    if (BTreeTracker.class.isInstance(obj)) {
+                        final BTreeTracker btreenode = (BTreeTracker) obj;
+                        final Shape btreeShape = btreenode.getShape();
+                        if (isWithinBoundryParameters(bounds, btreeShape, Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {  // note removed contains clause here
+                            //System.out.println("putting 'er in");
+                            
+                            btreenode.addItemToTracker(t);
+                            placed = true;
+                        }
                     }
                 }
             }
-            
             if (!placed) {
                 //System.out.println("not quite sure why this guy is here, bouncing up");
                 // we need to make sure we're not the root if we're going to pass it up
@@ -303,11 +308,11 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     }
     
     
-    public void rootUnregisterTracker(Trackable t, BTreeTracker btt) {
+    public void rootUnregisterTracker(final Trackable t, final BTreeTracker btt) {
         if (getRoot().equals(this)) {
             
             //System.out.println("removing registry size: " + Integer.toString(registry.size()));
-            Vector v = rootGetTracker(t);
+            final Vector v = rootGetTracker(t);
             
             v.remove(btt);
             rootSetTracker(t, v);
@@ -319,10 +324,10 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     }
     
     // register the tracker that trackable t is in.
-    public void rootRegisterTracker(Trackable t, BTreeTracker btt) {
+    public void rootRegisterTracker(final Trackable t, final BTreeTracker btt) {
         if (getRoot().equals(this)) {
             
-            Vector r = rootGetTracker(t);
+            final Vector r = rootGetTracker(t);
             // add our tracker
             r.add(btt);
             rootSetTracker(t, r);
@@ -331,9 +336,9 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         }
     }
     
-    public Vector rootGetTracker(Trackable t) {
+    public Vector rootGetTracker(final Trackable t) {
         if (getRoot().equals(this)) {
-            Vector v = ((Vector)getRegistry().get(t));
+            Vector v = ((Vector)this.registry.get(t));
             if (v == null) {
                 v = new Vector();
             }
@@ -343,9 +348,10 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         }
     }
     
-    public void rootSetTracker(Trackable t, Vector v) {
+    public void rootSetTracker(final Trackable t, final Vector v) {
         if (getRoot().equals(this)) {
-            Hashtable registry = getRegistry();
+            //Hashtable registry = getRegistry();
+            final Hashtable registry = this.registry;
             registry.remove(t);
             registry.put(t, v);
             setRegistry(registry);
@@ -357,16 +363,16 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     public void tick() {
     /*
         if (isLeaf()) {
-         
+     
             Runnable r = new Runnable () {
                 public void run() {processTick();}
             };
             Thread t = new Thread(r);
             t.start();
         } else {
-    */
-            processTick();
-      // }
+     */
+        processTick();
+        // }
         
         
         
