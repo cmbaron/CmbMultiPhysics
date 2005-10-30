@@ -34,6 +34,8 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         smallest = false;
     }
     
+
+    
     public boolean isSmallest() {
         return smallest;
     }
@@ -48,9 +50,10 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             setRegistry(new Hashtable());
     }
     
+    
     public Hashtable getRegistry() {
         if (getRoot().equals(this))
-            return ((Hashtable)registry.clone());
+            return ((Hashtable)registry);
         else
             return (getRoot().getRegistry());
     }
@@ -83,6 +86,36 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         getParent().addItemToTracker(t);
     }
     
+    public void upwardResorting() {
+        Vector items = getItems();
+        Iterator i = items.iterator();
+        
+        while (i.hasNext()) {
+            Object obj = i.next();
+            if (!BTreeTracker.class.isInstance(obj)) {
+                Trackable t = (Trackable) obj;
+                Shape thisShape = t.getShape();
+                if (!thisShape.intersects(getShape().getBounds2D()) && !thisShape.contains(getShape().getBounds2D())) {
+                    /*try {
+                        throw new Exception();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }*/
+                    //System.out.println("hey, this object isn't in us anymore" + thisShape.getBounds2D().toString());
+                    Vector newItems = getItems();
+                    newItems.remove(t);
+                    setItems(newItems);
+                    rootUnregisterTracker(t, this);
+                    // lets throw it at the root.
+                    passToParent(t);
+                    //if (!getParent().equals(this)) {
+                      //getParent().upwardResorting();
+                    //}
+                }
+            }
+        }
+    }
+    
     private void processTick() {
         Vector items;
         items = getItems();
@@ -104,25 +137,16 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
                 if (getShape() == null) {
                     //System.out.println("our shape is null");
                 }
-                if (!thisShape.intersects(getShape().getBounds2D()) && !thisShape.contains(getShape().getBounds2D())) {
-                    /*try {
-                        throw new Exception();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }*/
-                    //System.out.println("hey, this object isn't in us anymore" + thisShape.getBounds2D().toString());
-                    Vector newItems = getItems();
-                    newItems.remove(t);
-                    setItems(newItems);
-                    rootUnregisterTracker(t, this);
-                    // lets throw it at the root.
-                    getRoot().passToParent(t);
-                }
+                
             }  else {
                 BTreeTracker t = (BTreeTracker) i.next();
                 t.tick();
             }
         }
+        
+        upwardResorting();
+        
+        
         
     }
     
@@ -171,7 +195,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         b1.setRoot(getRoot());
         b2.setRoot(getRoot());
         
-        if (t1.getWidth() < 10 && t1.getHeight() < 10) {
+        if (t1.getWidth() < 20 && t1.getHeight() < 20) {
             b1.setSmallest(true);
             b2.setSmallest(true);
         }
@@ -261,7 +285,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
                 if (getParent().equals(this)) {
                     // we've got an object outside of our trackability, so we need
                     // some mechanism to revalidate the whole world above us.
-                    System.out.println("UNABLE TO PLACE OBJECT: " + t.getShape().getBounds2D().toString() + "in: " + getShape().toString());
+                    //System.out.println("UNABLE TO PLACE OBJECT: " + t.getShape().getBounds2D().toString() + "in: " + getShape().toString());
                     // this means we have a busted item.  we'll register him here, and violate the b-tree
                     // next time around he'll get in the right place (we hope)
                     super.registerItem(t);
@@ -279,7 +303,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     }
     
     
-    public synchronized void rootUnregisterTracker(Trackable t, BTreeTracker btt) {
+    public void rootUnregisterTracker(Trackable t, BTreeTracker btt) {
         if (getRoot().equals(this)) {
             
             //System.out.println("removing registry size: " + Integer.toString(registry.size()));
@@ -295,7 +319,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     }
     
     // register the tracker that trackable t is in.
-    public synchronized void rootRegisterTracker(Trackable t, BTreeTracker btt) {
+    public void rootRegisterTracker(Trackable t, BTreeTracker btt) {
         if (getRoot().equals(this)) {
             
             Vector r = rootGetTracker(t);
@@ -307,7 +331,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         }
     }
     
-    public synchronized Vector rootGetTracker(Trackable t) {
+    public Vector rootGetTracker(Trackable t) {
         if (getRoot().equals(this)) {
             Vector v = ((Vector)getRegistry().get(t));
             if (v == null) {
@@ -319,7 +343,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         }
     }
     
-    public synchronized void rootSetTracker(Trackable t, Vector v) {
+    public void rootSetTracker(Trackable t, Vector v) {
         if (getRoot().equals(this)) {
             Hashtable registry = getRegistry();
             registry.remove(t);
@@ -331,7 +355,21 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
     }
     
     public void tick() {
-        processTick();
+    /*
+        if (isLeaf()) {
+         
+            Runnable r = new Runnable () {
+                public void run() {processTick();}
+            };
+            Thread t = new Thread(r);
+            t.start();
+        } else {
+    */
+            processTick();
+      // }
+        
+        
+        
     }
     
 }

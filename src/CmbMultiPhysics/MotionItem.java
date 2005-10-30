@@ -239,7 +239,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *  @param c the object we're colliding with
      *  @return The new momentum of the caller
      */
-    public synchronized FloatVector getCollisionMomentum(SimpleCollisionItem c) {
+    public FloatVector getCollisionMomentum(SimpleCollisionItem c) {
         //return (c.getMomentum((CollisionItem) this));
         
         // them    us    them     us
@@ -289,7 +289,7 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
      *  @param c object to collide with (colliding object will determine collision semantics)
      *
      */
-    public synchronized void doCollision(SimpleCollisionItem c) {
+    public void doCollision(SimpleCollisionItem c) {
         
         //System.out.println("doing collision between " + this.toString() + " and " + c.toString());
         

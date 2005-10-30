@@ -74,9 +74,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public void tickForward(float deltaT) {
         super.tickForward(deltaT);
-        if (!isAlive()) {
-            setAlive(true);
-        }
+        
         // tell our master that we've done something
         //pt.registerTick(this);
     }
@@ -104,11 +102,11 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         return(baseShape);
     }
     
-    public synchronized void tick() {
+    public void tick() {
         
         //System.out.println("computing shape");
+        //setShape(computeShape());
         setShape(computeShape());
-        
     }
     
     /**
@@ -125,36 +123,32 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         Shape shape = getBaseShape();
         
-        if (isAlive()) {
-            
-            
-            
-            float angle;
-            
-            FloatVector x = FloatVector.getNorth();
-            if (getVelocity().getMagnitude() > 0) {
-                angle = x.getAngle(getVelocity());
-            } else {
-                angle = x.getAngle(FloatVector.getNorth());
-            }
-            
-            AffineTransform af = new AffineTransform();
-            
-            //af.scale(0.5,0.5);
-            
-            
-            af.rotate(Math.toRadians(angle));
-            
-            shape = af.createTransformedShape(shape);
-            
-            af.setToTranslation(getPosition().getX(), getPosition().getY());
-            
-            shape = af.createTransformedShape(shape);
-            
-            //System.out.println(shape.getBounds2D());
-            
-            //System.out.println(getPosition().toString());
+        float angle;
+        
+        FloatVector x = FloatVector.getNorth();
+        if (getVelocity().getMagnitude() > 0) {
+            angle = x.getAngle(getVelocity());
+        } else {
+            angle = x.getAngle(FloatVector.getNorth());
         }
+        
+        AffineTransform af = new AffineTransform();
+        
+        //af.scale(0.5,0.5);
+        
+        
+        af.rotate(Math.toRadians(angle));
+        
+        shape = af.createTransformedShape(shape);
+        
+        af.setToTranslation(getPosition().getX(), getPosition().getY());
+        
+        shape = af.createTransformedShape(shape);
+        
+        //System.out.println(shape.getBounds2D());
+        
+        //System.out.println(getPosition().toString());
+        
         
         //return (new RectanglePoint(getPosition(), 5));
         return(shape);
@@ -163,10 +157,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     public Shape getShape() {
-        AffineTransform af = new AffineTransform();
+        //AffineTransform af = new AffineTransform();
         
-        return ((Shape)af.createTransformedShape(currentShape));
-        //return(currentShape);
+        //return ((Shape)af.createTransformedShape(currentShape));
+        return(currentShape);
     }
     
     private void setShape(Shape s) {
@@ -197,10 +191,11 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         ourArea.intersect(theirArea);
         
+        
         Rectangle2D intersection = ourArea.getBounds2D();
         
         // dimensions of the intersection
-        FloatVector intersectionDimension = new FloatVector((float)intersection.getWidth(), (float)intersection.getHeight());
+        FloatVector intersectionDimension = new FloatVector((float)intersection.getWidth() + 0.1f, (float)intersection.getHeight() + 0.1f);
         
         FloatVector ourDimension = new FloatVector((float)ourShape.getBounds2D().getWidth(), (float)ourShape.getBounds2D().getHeight());
         
@@ -229,7 +224,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *
      *
      */
-    public synchronized void correctPosition(ComplexCollisionItem c) {
+    public void correctPosition(ComplexCollisionItem c) {
         
         if (!getCollidable())
             return;
@@ -250,7 +245,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *  to unmovable colliders.
      *
      */
-    public synchronized FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
+    public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
         Rectangle2D theirPosition = c.getShape().getBounds2D();
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
         

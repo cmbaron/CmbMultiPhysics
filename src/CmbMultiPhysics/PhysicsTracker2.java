@@ -17,6 +17,7 @@ import CmbMultiPhysics.Collisions.*;
 import java.awt.geom.Area;
 import java.util.Hashtable;
 import java.awt.geom.Rectangle2D;
+import java.util.Calendar;
 
 /**
  *
@@ -32,11 +33,12 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     Hashtable collisionMaster;
     int tickerSignal = 0;
     
-    public synchronized void signalTicker() {
+    public void signalTicker() {
         tickerSignal++;
     }
     
-    public synchronized boolean tryGetTicker() {
+    public boolean tryGetTicker() {
+       
         if (tickerSignal > 0) {
             tickerSignal--;
             return(true);
@@ -63,10 +65,10 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                     try {
                         Thread.sleep(rateInMillis);
                         //System.out.println("getting here");
-                        tickTheBottom();
-                        //tick();
+                        //tickTheBottom();
+                        tick();
                         signalTicker();
-                       
+                        
                         
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -83,13 +85,19 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     public void startCollisionEngineThread() {
         Runnable r = new Runnable() {
             public void run() {
+                
+                
+                
+                
                 while (true) {
                     try {
                         Thread.sleep(rateInMillis);
                         //System.out.println("getting here");
                         if (tryGetTicker()) {
-                            tickerSignal = 0;
+                            //tickerSignal = 0;
+                            
                             runCollisionDetection();
+                            
                             collisionMaster = new Hashtable();
                             ///System.out.println("new cm");
                         }
@@ -115,12 +123,19 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     }
     
     public void run() {
+        Calendar cal = Calendar.getInstance();
+        
+        long mills = cal.getTimeInMillis();
+        long rate = rateInMillis;
+        float runRate = (float)rateInMillis/1000;
+        long waitRate = rateInMillis;
         
         while (true) {
             try {
-                //System.out.println("RUNN");
-                Thread.sleep(rateInMillis);
-                tickForward((float)rateInMillis/1000);
+                Thread.sleep(waitRate);
+                 
+                tickForward(runRate);
+                
                 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -132,7 +147,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
      *  @see registerTick()
      *  @param deltaT the time duration to tick all physics items
      */
-    public synchronized void tickForward(float deltaT) {
+    public void tickForward(float deltaT) {
         
         //Iterator i = getItems().iterator();
         /*
@@ -162,15 +177,34 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         // this all needs to be rewritten to support RECURSION
         // not this bullshit of crawling up the bottom.. too inefficient!
         
+        Vector runVector = new Vector();
+        
+        //System.out.println(reg.size());
+        
         for (Enumeration e = reg.keys(); e.hasMoreElements(); ) {
             PhysicsTrackable t = (PhysicsTrackable) e.nextElement();
             t.tickForward(deltaT);
+            /*
+            if (runVector.size() < 15) {
+                runVector.add(t);
+            } else {
+                Runnable r = new ForwardTickThread((Vector)runVector.clone(),deltaT);
+                Thread thread = new Thread(r);
+                thread.start();
+                runVector = new Vector();
+            } */
+            
         }
-        
+        /*
+        Runnable r = new ForwardTickThread(runVector,deltaT);
+            Thread thread = new Thread(r);
+            thread.start(); */
         
         
         // correct the b-tree
         //tick();
+        //tickTheBottom();
+        //signalTicker();
         
         // process collisions?
         
@@ -195,30 +229,36 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
             // iterate over those squares to find collisions
             Hashtable collided = (Hashtable)collisionMaster;
             Vector actuallyCollideWith = new Vector();
-            while (i.hasNext()) {
-                BTreeTracker btt = (BTreeTracker) i.next();
-                objectsInCollision.addAll(btt.getIntersectingObjects(t.getShape(), PhysicsTrackable.class));
-                Iterator i2 = ((Vector)objectsInCollision.clone()).iterator();
-                
-                
-
-                while (i2.hasNext()) {
-                    Object obj = i2.next();
-                    // this is the other way we multiply collide (its listed
-                    // from two btree nodes
-                    if (!actuallyCollideWith.contains(obj) && !obj.equals(t)) {
-                        actuallyCollideWith.add(obj);
-                    }
-                    if (collided.containsKey(obj)) {
-                        
-                        Vector v1 = (Vector)collided.get(obj);
-                        if (v1.contains(t))
-                            actuallyCollideWith.remove(obj);
-                    }
+            
+            
+            
+                objectsInCollision.addAll(getIntersectingObjects(t.getShape(), PhysicsTrackable.class));
+           
+            
+            
+            
+            Iterator i2 = ((Vector)objectsInCollision.clone()).iterator();
+            
+            
+            
+            while (i2.hasNext()) {
+                Object obj = i2.next();
+                // this is the other way we multiply collide (its listed
+                // from two btree nodes
+                if (!actuallyCollideWith.contains(obj) && !obj.equals(t)) {
+                    actuallyCollideWith.add(obj);
                 }
-                collisionMaster.put(t, actuallyCollideWith);
+                if (collided.containsKey(obj)) {
+                    
+                    Vector v1 = (Vector)collided.get(obj);
+                    if (v1.contains(t))
+                        actuallyCollideWith.remove(obj);
+                }
             }
-            doCollisions(t, actuallyCollideWith);    
+            collisionMaster.put(t, actuallyCollideWith);
+            
+            
+            doCollisions(t, actuallyCollideWith);
         }
     }
     
@@ -267,6 +307,24 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
             }
         }
         
+    }
+    
+    private class ForwardTickThread implements Runnable {
+        
+        Vector items;
+        float deltaT;
+        
+        public ForwardTickThread(Vector r, float deltaT) {
+            items = r;
+            this.deltaT = deltaT;
+        }
+        
+        public void run() {
+            Iterator i = items.iterator();
+            while(i.hasNext()) {
+                ((PhysicsTrackable) i.next()).tickForward(deltaT);
+            }
+        }
     }
     
 }
