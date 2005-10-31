@@ -356,9 +356,11 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 if (!inboundArea.isEmpty()) {
                     // high precision collision check successful.
                     if (ComplexCollisionItem.class.isInstance(inbound) && ComplexCollisionItem.class.isInstance(collidingWith)) {
-                        ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
                         
                         ((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
+                        ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
+                        
+                        
                     }
                 }
             }

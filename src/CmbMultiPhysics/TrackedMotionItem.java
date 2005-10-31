@@ -172,7 +172,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         //computeShape();
     }
     
-    private synchronized FloatVector positionCorrection(final Shape theirShape, float divisor) {
+    private FloatVector positionCorrection(final Shape theirShape, float divisor) {
         
         final Shape ourShape = getShape();
         
@@ -229,6 +229,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         if (!getCollidable())
             return;
         
+        synchronized(position) {
         // get a new point to where we want to go
         FloatVector intendedPosition = positionCorrection(c.getShape(), 2f);
         
@@ -237,6 +238,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         final FloatVector actuallyMovingTo = (FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone());
         ///System.out.println("1 Actually moving to: " + actuallyMovingTo);
         setPosition(actuallyMovingTo);
+        }
         
     }
     
@@ -246,6 +248,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *
      */
     public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
+        synchronized(position) {
         Rectangle2D theirPosition = c.getShape().getBounds2D();
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
         
@@ -255,7 +258,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         if (getCollidable())
             setPosition(moveTo);
-        
+        }
         // tell them they can go where they want
         return((FloatVector)intention.clone());
     }
