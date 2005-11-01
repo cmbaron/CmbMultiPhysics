@@ -68,20 +68,23 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 long sleepRate = rateInMillis;
                 long rate = rateInMillis;
                 
-                int scalar = 1;
+                int scalar = 5;
                 
                 // self tuning.  this is the highest latency thread, we need
                 // to synchronize the other ones at the rate of this, at least
                 // they would be wasting cycles grinding away unnecessarily.
                 
+                int tickcounter = 0;
+                
                 while (true) {
                     try {
                         Thread.sleep(rateInMillis/scalar);
                         rate = Calendar.getInstance().getTimeInMillis();
-                        tick();
+                        syncTick(tickcounter++);
                         //tickTheBottom();
                         signalTicker();
                         rate = Calendar.getInstance().getTimeInMillis() - rate;
+                        /*
                         if (rate > avgRate) {
                             
                             sleepRate = 0;
@@ -97,7 +100,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                                 rateInMillis = (int)avgRate*scalar;
                             }
                         
-                        }
+                        }*/
                         
                         //System.out.println("getting here");
                         //tickTheBottom();
@@ -322,6 +325,8 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     public void tickTheBottom() {
         Hashtable reg = getRegistry();
         
+        int tickcounter = 0;
+        
         for (Enumeration e = reg.keys(); e.hasMoreElements(); ) {
             PhysicsTrackable t = (PhysicsTrackable) e.nextElement();
             
@@ -331,7 +336,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
             // iterate over those squares to find collisions
             while (i.hasNext()) {
                 BTreeTracker btt = (BTreeTracker) i.next();
-                btt.tick();
+                btt.syncTick(tickcounter--);
             }
         }
     }

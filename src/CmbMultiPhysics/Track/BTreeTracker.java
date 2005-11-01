@@ -21,13 +21,14 @@ import java.util.Hashtable;
  *
  * @author cbaron
  */
-public class BTreeTracker extends TrackableTracker implements Tickable {
+public class BTreeTracker extends TrackableTracker implements SyncTickable {
     
     boolean leaf;
     BTreeTracker root = null;
     BTreeTracker parent = null;
     Hashtable registry = null;
     boolean smallest;
+    int lastticked = -1;
     
     /** Creates a new instance of BTreeTracker */
     public BTreeTracker() {
@@ -117,7 +118,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         }
     }
     
-    private void processTick() {
+    private void processTick(int n) {
         Vector items;
         items = getItems();
         Iterator i = items.iterator();
@@ -128,20 +129,12 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             if (Trackable.class.isInstance(obj)) {
                 Trackable t = (Trackable) obj;
                 // ticket if we can
-                if (Tickable.class.isInstance(t))
-                    ((Tickable)t).tick();
-                Shape thisShape = t.getBounds();
-                if (thisShape == null) {
-                    //System.out.println("their shape is null");
-                    
-                }
-                if (getBounds() == null) {
-                    //System.out.println("our shape is null");
-                }
+                if (SyncTickable.class.isInstance(t))
+                    ((SyncTickable)t).syncTick(n);
                 
             }  else {
                 BTreeTracker t = (BTreeTracker) i.next();
-                t.tick();
+                t.syncTick(n);
             }
         }
         
@@ -262,7 +255,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             
             // we need to check this again, incase we turned into a tree node
             boolean placed = false;
-            final Rectangle2D bounds = getBounds();
+            final Rectangle2D bounds = t.getBounds();
             if (isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
                 items = getItems();
                 
@@ -273,7 +266,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
                     
                     if (BTreeTracker.class.isInstance(obj)) {
                         final BTreeTracker btreenode = (BTreeTracker) obj;
-                        final Shape btreeShape = btreenode.getShape();
+                        final Rectangle2D btreeShape = btreenode.getBounds();
                         if (isWithinBoundryParameters(bounds, btreeShape, Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {  // note removed contains clause here
                             //System.out.println("putting 'er in");
                             
@@ -360,7 +353,7 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         }
     }
     
-    public void tick() {
+    public void syncTick(int n) {
         /*
         //if (!isLeaf()) {
             
@@ -371,7 +364,12 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             t.start();
         //} else {*/
             
-            processTick();
+            if (n == lastticked)
+                return;
+            
+            lastticked = n;
+        
+            processTick(n);
         //}
         
         

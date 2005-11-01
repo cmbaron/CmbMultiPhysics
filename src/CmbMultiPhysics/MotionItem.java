@@ -421,12 +421,12 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
         // this is the standard positional formula
         // dX = 1/2 * F(x) * t^2 + V(x)*t
         // X = dx + X(t-1)
-        synchronized(position) {
+        
             synchronized(velocity) {
                 position.setX((float)((.5) * forceSum.getX()/getMass() * deltaT*deltaT + velocity.getX() * deltaT + position.getX()));
                 position.setY((float)((.5) * forceSum.getY()/getMass() * deltaT*deltaT + velocity.getY() * deltaT + position.getY()));
             }
-        }
+        
         
         
         /*

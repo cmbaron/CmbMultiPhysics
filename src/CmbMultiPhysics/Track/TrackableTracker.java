@@ -23,6 +23,7 @@ import java.util.Iterator;
 public class TrackableTracker extends Tracker implements Trackable {
     
     Shape ourShape;
+    Rectangle2D bounds;
     
     /** Creates a new instance of TrackableTracker */
     public TrackableTracker() {
@@ -88,7 +89,7 @@ public class TrackableTracker extends Tracker implements Trackable {
     
     // eliminate method call
     public Rectangle2D getBounds() {
-        return ourShape.getBounds2D();
+        return bounds;
     }
     
     public Shape getShape() {
@@ -98,6 +99,7 @@ public class TrackableTracker extends Tracker implements Trackable {
     
     public void setShape(Shape s) {
         ourShape = s;
+        bounds = ourShape.getBounds();
     }
     /*
     public int hashCode() {
