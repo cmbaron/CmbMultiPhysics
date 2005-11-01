@@ -17,6 +17,7 @@ import CmbMultiPhysics.Track.Tracker;
  */
 public interface PhysicsTrackable extends CmbMultiPhysics.Track.Trackable {
     public void tickForward(float deltaT);
+    public void clearCollisions();
     
     //public void setComparisonType(Tracker.ContainerParameters parameters);
     //public Tracker.ContainerParameters getComparisonType();

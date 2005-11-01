@@ -9,7 +9,9 @@
  */
 
 package CmbMultiPhysics;
+import CmbMultiPhysics.Track.BTreeTrackableRunnable;
 import CmbMultiPhysics.Track.BTreeTracker;
+import CmbMultiPhysics.Track.Trackable;
 import java.util.Iterator;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -26,7 +28,7 @@ import java.util.Calendar;
 public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     
     static PhysicsTracker2 _instance = null;
-    private int rateInMillis;
+    volatile static private int rateInMillis;
     private int averageRate;
     Vector collided;
     private Thread collisionEngineThread;
@@ -59,11 +61,14 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         startTreeTicker();
         collisionMaster = new Hashtable();
     }
+
+    public void treeTickerRunner(int tickcounter) {
+        syncTick(tickcounter);
+    }
     
     public void startTreeTicker() {
         Runnable r = new Runnable() {
             public void run() {
-                
                 float avgRate = rateInMillis;
                 long sleepRate = rateInMillis;
                 long rate = rateInMillis;
@@ -80,26 +85,26 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                     try {
                         Thread.sleep(rateInMillis/scalar);
                         rate = Calendar.getInstance().getTimeInMillis();
-                        syncTick(tickcounter++);
+                        treeTickerRunner(tickcounter++);
                         //tickTheBottom();
                         signalTicker();
                         rate = Calendar.getInstance().getTimeInMillis() - rate;
                         /*
                         if (rate > avgRate) {
-                            
+                         
                             sleepRate = 0;
                             avgRate = (float) (avgRate*0.999 + rate*0.001);
                             rateInMillis = (int)avgRate*scalar;
-                            
+                         
                             //System.out.println("new expected rate: " + rateInMillis);
                         } else {
                             sleepRate = rateInMillis - rate;
                             if (avgRate > rateInMillis/scalar) {
                                 avgRate = (float) (avgRate*0.999 + rate*0.001);
-                                
+                         
                                 rateInMillis = (int)avgRate*scalar;
                             }
-                        
+                         
                         }*/
                         
                         //System.out.println("getting here");
@@ -112,6 +117,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                     }
                     
                 }
+                
             }
         };
         
@@ -119,30 +125,38 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         treeBottomTickingThread.start();
     }
     
+    public void collisionEngineRunner(BTreeTrackableRunnable bttr) {
+        
+        runOnTrackables(bttr);
+        
+    }
+    
     public void startCollisionEngineThread() {
         Runnable r = new Runnable() {
             public void run() {
+                long rate;
                 
-                
-                
+                BTreeTrackableRunnable bttr1 = getCollisionDetectionBTTR();
+                BTreeTrackableRunnable bttr2 = getClearCollisionsBTTR();
                 
                 while (true) {
                     try {
                         Thread.sleep(rateInMillis/20);
                         //System.out.println("getting here");
+                        //runCollisionDetection();
+                        rate = Calendar.getInstance().getTimeInMillis();
+                        collisionEngineRunner(bttr1);
+                        runOnTrackables(bttr2);
+                        rate = Calendar.getInstance().getTimeInMillis() - rate;
+                        ///System.out.println(rate);
+                        //collisionMaster = new Hashtable();
+                        ///System.out.println("new cm");
                         if (tryGetTicker()) {
                             //tickerSignal = 0;
-                            
-                            runCollisionDetection();
-                            
-                            collisionMaster = new Hashtable();
-                            ///System.out.println("new cm");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    
-                    
                 }
             }
         };
@@ -170,6 +184,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         long runRateMillis = rateInMillis;
         long calc;
         
+        BTreeTrackableRunnable bttr = getTickForwardBTTR();
         
         while (true) {
             try {
@@ -178,11 +193,12 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 
                 Thread.sleep(sleepRate);
                 rate = Calendar.getInstance().getTimeInMillis();
-                tickForward((float)rateInMillis/1000);
+                //tickForward((float)rateInMillis/1000);
+                runOnTrackables(bttr);
                 rate = Calendar.getInstance().getTimeInMillis() - rate;
                 if (rate > rateInMillis) {
                     
-                    sleepRate = 0;
+                    //sleepRate = 0;
                     //runRate = (float) (runRateMillis*0.9 + rate*0.1);
                     //runRateMillis = (long)runRate;
                     //rateInMillis = (int)runRateMillis;
@@ -203,104 +219,105 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         }
     }
     
-    /** Iterates over all registered Trackables
-     *  @see registerTick()
-     *  @param deltaT the time duration to tick all physics items
-     */
-    public void tickForward(float deltaT) {
-        
-        //Iterator i = getItems().iterator();
-        /*
-        while (i.hasNext()) {
-            try {
-                PhysicsTrackable item = (PhysicsTrackable) i.next();
-                item.tickForward(deltaT);
-                // now correct the btree
-                BTreeTracker trackerForItem = rootGetTracker((Trackable)item);
-                trackerForItem.tick();
-                // this will return objects inside our bounding box
-                // it is a rough estimation
-         
-                Vector objectsInCollision = super.getIntersectingObjects(item.getShape());
-                doCollisions(item, objectsInCollision);
-                //System.out.println("tick");
-            } catch (Exception e) {
-                e.printStackTrace();
+    public BTreeTrackableRunnable getClearCollisionsBTTR() {
+        BTreeTrackableRunnable bttr = new BTreeTrackableRunnable() {
+            public void run(Trackable t, BTreeTracker btt) {
+                if (PhysicsTrackable.class.isInstance(t)) {
+                    ///System.out.println("actually doing a tf " + (float)PhysicsTracker2.rateInMillis/1000);
+                    ((PhysicsTrackable) t).clearCollisions();
+                }
             }
-        }
-         */
-        
-        Hashtable reg = getRegistry();
-        
-        // strobe all objects to move.
-        
-        // this all needs to be rewritten to support RECURSION
-        // not this bullshit of crawling up the bottom.. too inefficient!
-        
-        Vector runVector = new Vector();
-        
-        //System.out.println(reg.size());
-        
-        for (Enumeration e = reg.keys(); e.hasMoreElements(); ) {
-            PhysicsTrackable t = (PhysicsTrackable) e.nextElement();
-            t.tickForward(deltaT);
-            /*
-            if (runVector.size() < 15) {
-                runVector.add(t);
-            } else {
-                Runnable r = new ForwardTickThread((Vector)runVector.clone(),deltaT);
-                Thread thread = new Thread(r);
-                thread.start();
-                runVector = new Vector();
-            } */
-            
-        }
-        /*
-        Runnable r = new ForwardTickThread(runVector,deltaT);
-            Thread thread = new Thread(r);
-            thread.start(); */
-        
-        
-        // correct the b-tree
-        //tick();
-        //tickTheBottom();
-        //signalTicker();
-        
-        // process collisions?
-        
-        
-        ///System.out.println("TICK");
+        };
+        return(bttr);
     }
     
+    public BTreeTrackableRunnable getTickForwardBTTR() {
+        BTreeTrackableRunnable bttr = new BTreeTrackableRunnable() {
+            public void run(Trackable t, BTreeTracker btt) {
+                ///System.out.println("called to tf");
+                if (PhysicsTrackable.class.isInstance(t)) {
+                    ///System.out.println("actually doing a tf " + (float)PhysicsTracker2.rateInMillis/1000);
+                    ((PhysicsTrackable) t).tickForward((float)PhysicsTracker2.rateInMillis/1000);
+                }
+            }
+        };
+        
+        return(bttr);
+    }
+    
+    public BTreeTrackableRunnable getCollisionDetectionBTTR() {
+        
+        // define the dynamic block of code to be run
+        BTreeTrackableRunnable bttr = new BTreeTrackableRunnable() {
+            public void run(Trackable t, BTreeTracker btt) {
+                if (!PhysicsTrackable.class.isInstance(t))
+                    return;
+                
+                Vector v = btt.getItems();
+                Object a[] = v.toArray();
+                
+                System.out.println(a.length);
+                
+                for (int x = 0; x < a.length; x++)
+                    if (PhysicsTrackable.class.isInstance(a[x]))
+                        newDoCollisions((PhysicsTrackable) t, (PhysicsTrackable) a[x]);
+            }
+            
+            public void newDoCollisions(PhysicsTrackable inbound1, PhysicsTrackable inbound2) {
+                
+                
+                if (inbound1 != inbound2) {
+                    //Area inboundArea = new Area(inbound1.getShape());
+                    //Area collidingArea = new Area(inbound2.getShape());
+                    //inboundArea.intersect(collidingArea);
+                    if (true) {
+                        //if (!inboundArea.isEmpty()) {
+                        // high precision collision check successful.
+                        if (ComplexCollisionItem.class.isInstance(inbound1) && ComplexCollisionItem.class.isInstance(inbound2)) {
+                            
+                            ((ComplexCollisionItem) inbound1).correctPosition((ComplexCollisionItem)inbound2);
+                            ((ComplexCollisionItem) inbound1).doCollision((ComplexCollisionItem)inbound2);
+                            
+                        }
+                        
+                    }
+                }
+            }
+        };
+        
+        return (bttr);
+        
+    }
+    /*
     public void runCollisionDetection() {
         Hashtable reg = getRegistry();
         //Hashtable collided = new Hashtable();
-        
+     
         for (Enumeration e = reg.keys(); e.hasMoreElements(); ) {
             PhysicsTrackable t = (PhysicsTrackable) e.nextElement();
-            
+     
             // uh, this is still checking everything.
             // create a holder for the collisions
             Vector objectsInCollision = new Vector();
-            
+     
             // get the list of squares this object exists in
             Vector v = rootGetTracker(t);
             Iterator i = v.iterator();
             // iterate over those squares to find collisions
             Hashtable collided = (Hashtable)collisionMaster;
             Vector actuallyCollideWith = new Vector();
-            
-            
-            
+     
+     
+     
             objectsInCollision.addAll(getIntersectingObjects(t.getShape(), PhysicsTrackable.class));
-            
-            
-            
-            
+     
+     
+     
+     
             Iterator i2 = ((Vector)objectsInCollision.clone()).iterator();
-            
-            
-            
+     
+     
+     
             while (i2.hasNext()) {
                 Object obj = i2.next();
                 // this is the other way we multiply collide (its listed
@@ -309,27 +326,28 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                     actuallyCollideWith.add(obj);
                 }
                 if (collided.containsKey(obj)) {
-                    
+     
                     Vector v1 = (Vector)collided.get(obj);
                     if (v1.contains(t))
                         actuallyCollideWith.remove(obj);
                 }
             }
             collisionMaster.put(t, actuallyCollideWith);
-            
-            
+     
+     
             doCollisions(t, actuallyCollideWith);
         }
     }
-    
+     */
+    /*
     public void tickTheBottom() {
         Hashtable reg = getRegistry();
-        
+     
         int tickcounter = 0;
-        
+     
         for (Enumeration e = reg.keys(); e.hasMoreElements(); ) {
             PhysicsTrackable t = (PhysicsTrackable) e.nextElement();
-            
+     
             // get the list of squares this object exists in
             Vector v = rootGetTracker(t);
             Iterator i = v.iterator();
@@ -340,8 +358,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
             }
         }
     }
-    
-    
+     */
     
     public void doCollisions(PhysicsTrackable inbound, Vector hitting) {
         Iterator i = hitting.iterator();

@@ -23,7 +23,7 @@ import java.util.Iterator;
 public class TrackableTracker extends Tracker implements Trackable {
     
     Shape ourShape;
-    Rectangle2D bounds;
+    volatile Rectangle2D bounds;
     
     /** Creates a new instance of TrackableTracker */
     public TrackableTracker() {

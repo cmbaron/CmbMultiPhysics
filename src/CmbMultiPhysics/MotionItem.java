@@ -302,6 +302,10 @@ public class MotionItem implements PositionItem,SimpleCollisionItem {
             // we're going to fetch what he wants us to be
             final FloatVector hisMomentum = c.getCollisionMomentum((SimpleCollisionItem)this);
             
+            // whoa, nothing to do.
+            if (hisMomentum == null) 
+                return;
+            
             // now we remove our mass from that
             hisMomentum.scale(1/getMass());
             

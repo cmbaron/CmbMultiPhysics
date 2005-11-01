@@ -36,6 +36,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     Rectangle2D baseBounds;
     Rectangle2D currentBounds;
     boolean alive = false;
+    boolean collided = true;
+    boolean corrected = true;
     int ticknumber;
     
     /** Creates a new instance of TrackedMotionItem */
@@ -110,12 +112,18 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         return(baseShape);
     }
     
+    public void clearCollisions() {
+        collided = false;
+        corrected = false;
+    }
+    
     public void syncTick(int n) {
         
-        if (n == ticknumber) 
+        if (n == ticknumber)
             return;
         
         ticknumber = n;
+        
         
         //System.out.println("computing shape");
         //setShape(computeShape());
@@ -184,7 +192,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         final float h = (float)baseBounds.getHeight()/2;
         final float w = (float)baseBounds.getWidth()/2;
         
-        currentBounds.setRect(x - w, y - h, x + w, y + h);
+        currentBounds.setRect(x - w, y - h, w, h);
         
         return(currentBounds);
         
@@ -223,6 +231,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     
     private FloatVector positionCorrection(final Shape theirShape, float divisor) {
         
+        
         final Shape ourShape = getShape();
         
         FloatVector dist2Center = ComplexCollider.dist2Center(ourShape, theirShape);
@@ -239,6 +248,9 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         Area theirArea = new Area(theirShape);
         
         ourArea.intersect(theirArea);
+        // NO CORRECTION
+        if (ourArea.isEmpty()) 
+            return null;
         
         
         Rectangle2D intersection = ourArea.getBounds2D();
@@ -267,8 +279,26 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         FloatVector movetoPosition = ((FloatVector)d2cuv.clone()).add(ourCenter);
         
         return (movetoPosition);
+        
     }
     
+    public void doCollision(SimpleCollisionItem c) {
+        //if (collided) 
+          //  return;
+        
+        collided = true;
+        
+        super.doCollision(c);
+    }
+    
+    public FloatVector getCollisionMomentum(SimpleCollisionItem c) {
+       // if (collided) 
+          //  return(null);
+        
+        collided = true;
+        
+        return(super.getCollisionMomentum(c));
+    }
     
     /** This defines the position-collision behavior of this object.
      *
@@ -276,19 +306,24 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public void correctPosition(ComplexCollisionItem c) {
         
-        if (!getCollidable())
+       // if (!getCollidable() && corrected)
+           // return;
+        
+        corrected = true;
+        
+        // get a new point to where we want to go
+        FloatVector intendedPosition = positionCorrection(c.getShape(), 2f);
+        
+        if (intendedPosition == null) 
             return;
         
-        synchronized(position) {
-            // get a new point to where we want to go
-            FloatVector intendedPosition = positionCorrection(c.getShape(), 2f);
-            
-            // tell our colliding body what we want to do about our overlap
-            ///System.out.println("1 Going to move to: " + intendedPosition.toString());
-            final FloatVector actuallyMovingTo = (FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone());
-            ///System.out.println("1 Actually moving to: " + actuallyMovingTo);
+        // tell our colliding body what we want to do about our overlap
+        ///System.out.println("1 Going to move to: " + intendedPosition.toString());
+        final FloatVector actuallyMovingTo = (FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone());
+        if (actuallyMovingTo != null) 
+        ///System.out.println("1 Actually moving to: " + actuallyMovingTo);
             setPosition(actuallyMovingTo);
-        }
+        
         
     }
     
@@ -298,17 +333,26 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *
      */
     public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
-        synchronized(position) {
-            Rectangle2D theirPosition = c.getShape().getBounds2D();
-            Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
-            
-            ///System.out.println("2 Other object wants to go to: " + intention.toString());
-            FloatVector moveTo = positionCorrection(theirIntendedShape, 1f);
-            ///System.out.println("2 We're going to: " + moveTo.toString());
-            
-            if (getCollidable())
-                setPosition(moveTo);
-        }
+        
+        // once per tick!
+        //if (corrected)
+           // return(null);
+        
+        corrected = true;
+        
+        Rectangle2D theirPosition = c.getShape().getBounds2D();
+        Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());
+        
+        ///System.out.println("2 Other object wants to go to: " + intention.toString());
+        FloatVector moveTo = positionCorrection(theirIntendedShape, 1f);
+        ///System.out.println("2 We're going to: " + moveTo.toString());
+        
+        if (moveTo == null)
+            return(null);
+        
+        if (getCollidable())
+            setPosition(moveTo);
+        
         // tell them they can go where they want
         return((FloatVector)intention.clone());
     }
