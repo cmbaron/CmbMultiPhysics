@@ -256,11 +256,12 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 Vector v = btt.getItems();
                 Object a[] = v.toArray();
                 
-                System.out.println(a.length);
+                ///System.out.println(a.length);
                 
                 for (int x = 0; x < a.length; x++)
-                    if (PhysicsTrackable.class.isInstance(a[x]))
+                    if (PhysicsTrackable.class.isInstance(a[x])) {
                         newDoCollisions((PhysicsTrackable) t, (PhysicsTrackable) a[x]);
+                    }
             }
             
             public void newDoCollisions(PhysicsTrackable inbound1, PhysicsTrackable inbound2) {
@@ -269,12 +270,15 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 if (inbound1 != inbound2) {
                     //Area inboundArea = new Area(inbound1.getShape());
                     //Area collidingArea = new Area(inbound2.getShape());
+                    Rectangle2D roughShape1 = inbound1.getBounds();
+                    Rectangle2D roughShape2 = inbound2.getBounds();
+                    
                     //inboundArea.intersect(collidingArea);
-                    if (true) {
+                    if (roughShape1.intersects(roughShape2)) {
                         //if (!inboundArea.isEmpty()) {
                         // high precision collision check successful.
                         if (ComplexCollisionItem.class.isInstance(inbound1) && ComplexCollisionItem.class.isInstance(inbound2)) {
-                            
+                            ///System.out.println("Doing collisions!");
                             ((ComplexCollisionItem) inbound1).correctPosition((ComplexCollisionItem)inbound2);
                             ((ComplexCollisionItem) inbound1).doCollision((ComplexCollisionItem)inbound2);
                             

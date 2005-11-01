@@ -84,6 +84,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         if (alive)
             super.tickForward(deltaT);
         
+        //System.out.println(this + "ticking");
+        
         // tell our master that we've done something
         //pt.registerTick(this);
     }
@@ -185,10 +187,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         float x;
         float y;
-        synchronized (position) {
+        //synchronized (position) {
             x = position.getX();
             y = position.getY();
-        }
+        //}
         final float h = (float)baseBounds.getHeight()/2;
         final float w = (float)baseBounds.getWidth()/2;
         
@@ -283,8 +285,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     public void doCollision(SimpleCollisionItem c) {
-        //if (collided) 
-          //  return;
+        if (collided) 
+            return;
         
         collided = true;
         
@@ -292,8 +294,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     }
     
     public FloatVector getCollisionMomentum(SimpleCollisionItem c) {
-       // if (collided) 
-          //  return(null);
+       if (collided) 
+           return(null);
         
         collided = true;
         
@@ -306,8 +308,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public void correctPosition(ComplexCollisionItem c) {
         
-       // if (!getCollidable() && corrected)
-           // return;
+       if (!getCollidable() && corrected)
+            return;
         
         corrected = true;
         

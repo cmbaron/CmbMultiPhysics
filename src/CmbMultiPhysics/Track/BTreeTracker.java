@@ -67,25 +67,25 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             //System.out.println("trying to pass to parent, which is myself. shit.");
             
         }
-        getRoot().getParent().addItemToTracker(t);
+        getRoot().getParent().addItem2(t);
     }
     
-    public void upwardResorting() {
+    public synchronized void upwardResorting() {
         Object a[];
-        synchronized(items) {
+        //synchronized(items) {
             //Vector theseItems = getItems();
             //Vector theseItems = items;
             a = getItems().toArray();
             //Iterator i = theseItems.iterator();
-        }
+        //}
         for (int x = 0; x < a.length; x++) {
             Object obj = a[x];
             if (!BTreeTracker.class.isInstance(obj)) {
                 Trackable t = (Trackable) obj;
                 if (!isLeaf()) {
-                    synchronized(items) {
+                    //synchronized(items) {
                         items.remove(obj);
-                    }
+                    //}
                     passToParent(t);
                     
                 } else {
@@ -97,9 +97,9 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
                       e.printStackTrace();
                     }*/
                         //System.out.println("hey, this object isn't in us anymore" + thisShape.getBounds2D().toString());
-                        synchronized(items) {
+                        //synchronized(items) {
                             items.remove(obj);
-                        }
+                        //}
                         passToParent(t);
                     }
                 }
@@ -112,9 +112,9 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         //Vector items;
         //items = getItems();
         Object a[];
-        synchronized(items) {
+        //synchronized(items) {
             a = getItems().toArray();
-        }
+        //}
         //Iterator i = items.iterator();
         
         for (int x = 0; x < a.length; x++) {
@@ -130,9 +130,9 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
     
     private void processTick(int n) {
         Object a[];
-        synchronized(items) {
+        //synchronized(items) {
             a = getItems().toArray();
-        }
+        //}
         //Iterator i = items.iterator();
         
         for (int x = 0; x < a.length; x++) {
@@ -274,7 +274,44 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
     }
     
     public synchronized void registerItem(final Trackable t) {
-        addItemToTracker(t);
+        addItem2(t);
+    }
+    
+    private synchronized boolean addItem2(final Trackable t) {
+        final Rectangle2D bounds = t.getBounds();
+        if (isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
+            if (isLeaf()) {
+                if (!items.contains(t)) {
+                    if (isSmallest() || items.size() < 5) {
+                        items.add(t);
+                        return true;
+                    } else {
+                        splitUp();
+                    }
+                } else {
+                    // contains
+                    
+                    // this shouldn't happen
+                    System.out.println("Trying to add a contained object???");
+                    return true;
+                }
+            } else {
+                Object a[] = ((Vector)items.clone()).toArray();
+                for (int x = 0; x < a.length; x++) 
+                    if (BTreeTracker.class.isInstance(a[x]))
+                        if (((BTreeTracker) a[x]).addItem2(t))
+                            return true;
+            }
+        } else {
+            return (false);
+        }
+        
+        // if we made it here that means there was no legitimate reason to bomb out
+        // but we didn't place it anywhere.
+        items.add(t);
+        System.out.println("had nothing else to do, so i ate it.");
+        return(true);
+        
     }
     
     private synchronized void addItemToTracker(final Trackable t) {
