@@ -33,6 +33,8 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     PhysicsTracker2 pt;
     Shape currentShape;
     Shape baseShape;
+    Rectangle2D baseBounds;
+    Rectangle2D currentBounds;
     boolean alive;
     
     /** Creates a new instance of TrackedMotionItem */
@@ -156,6 +158,35 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
     }
     
+    public Rectangle2D computeBounds() {
+        
+            float x;
+            float y;
+            synchronized (position) {
+                x = position.getX();
+                y = position.getY();
+            }
+            final float h = (float)baseBounds.getHeight()/2;
+            final float w = (float)baseBounds.getWidth()/2; 
+            
+            currentBounds.setRect(x - w, y - h, x + w, y + h);
+            
+            return(currentBounds);
+        
+    }
+    
+    public Rectangle2D getBounds() {
+        return currentBounds;
+    }
+    
+    public Rectangle2D getBaseBounds() {
+        return baseBounds;
+    }
+    
+    public void setBaseBounds(Rectangle2D r) {
+        baseBounds = r;
+    }
+    
     public Shape getShape() {
         //AffineTransform af = new AffineTransform();
         
@@ -219,6 +250,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         
         return (movetoPosition);
     }
+    
     
     /** This defines the position-collision behavior of this object.
      *
