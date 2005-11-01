@@ -11,6 +11,7 @@
 package CmbMultiPhysics.Track;
 import java.awt.Shape;
 import CmbMultiPhysics.*;
+import java.awt.geom.Rectangle2D;
 
 /**
  * This interface defines the methods necessary to for the PhysicsTracker to 
@@ -27,6 +28,13 @@ public interface Trackable {
      * @return a Shape object 
      */
     public Shape getShape();
+    
+    /** Get a rectangle bounding box of the base shape at the position
+     * 
+     * @return the bounding box at the position of object
+     *
+     */
+    public Rectangle2D getBounds();
     /**
      * @return positional vector
      */

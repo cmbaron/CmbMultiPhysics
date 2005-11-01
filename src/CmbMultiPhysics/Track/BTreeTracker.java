@@ -95,8 +95,8 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             Object obj = i.next();
             if (!BTreeTracker.class.isInstance(obj)) {
                 Trackable t = (Trackable) obj;
-                Shape thisShape = t.getShape();
-                if (!thisShape.intersects(getShape().getBounds2D()) && !thisShape.contains(getShape().getBounds2D())) {
+                Shape thisShape = t.getBounds();
+                if (!thisShape.intersects(getBounds()) && !thisShape.contains(getBounds())) {
                     /*try {
                         throw new Exception();
                     } catch (Exception e) {
@@ -130,12 +130,12 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
                 // ticket if we can
                 if (Tickable.class.isInstance(t))
                     ((Tickable)t).tick();
-                Shape thisShape = t.getShape();
+                Shape thisShape = t.getBounds();
                 if (thisShape == null) {
                     //System.out.println("their shape is null");
                     
                 }
-                if (getShape() == null) {
+                if (getBounds() == null) {
                     //System.out.println("our shape is null");
                 }
                 
@@ -158,8 +158,8 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
         Rectangle2D t1;
         Rectangle2D t2;
         
-        Shape s = getShape();
-        Rectangle2D r = s.getBounds2D();
+        
+        Rectangle2D r = getBounds();
         
         
         final float centerX,centerY;
@@ -262,8 +262,8 @@ public class BTreeTracker extends TrackableTracker implements Tickable {
             
             // we need to check this again, incase we turned into a tree node
             boolean placed = false;
-            final Rectangle2D bounds = t.getShape().getBounds2D();
-            if (isWithinBoundryParameters(bounds, getShape(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
+            final Rectangle2D bounds = getBounds();
+            if (isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
                 items = getItems();
                 
                 

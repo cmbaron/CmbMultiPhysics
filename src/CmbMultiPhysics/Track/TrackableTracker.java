@@ -50,16 +50,17 @@ public class TrackableTracker extends Tracker implements Trackable {
         
         while (i.hasNext()) {
             Trackable checkingTrackable = (Trackable) i.next();
+            Rectangle2D checkingBounds = checkingTrackable.getBounds();
             
             // Recursion into contained TrackableTrackers
             if (TrackableTracker.class.isInstance(checkingTrackable)) {
                 // check to see if the TrackableTracker we have is intersecting or contained by
                 // the boundry we've handed.
-                if (isWithinBoundryParameters(checkingTrackable.getShape(), boundry, Tracker.ContainerParameters.CONTAINSORINTERSECTS))
+                if (isWithinBoundryParameters(checkingBounds, boundry, Tracker.ContainerParameters.CONTAINSORINTERSECTS))
                     returnVector.addAll(((TrackableTracker)checkingTrackable).getObjectsFromBoundry(boundry, parameter, classtype));
             }
             
-            if (isWithinBoundryParameters(checkingTrackable.getShape(), boundry, parameter)) {
+            if (isWithinBoundryParameters(checkingBounds, boundry, parameter)) {
                 if (classtype.isInstance(checkingTrackable)) {
                     returnVector.add(checkingTrackable);
                 }
@@ -83,6 +84,11 @@ public class TrackableTracker extends Tracker implements Trackable {
     public FloatVector getPosition() {
         Rectangle2D r = getShape().getBounds2D();
         return (new FloatVector((float)r.getCenterX(), (float)r.getCenterY() ));
+    }
+    
+    // eliminate method call
+    public Rectangle2D getBounds() {
+        return ourShape.getBounds2D();
     }
     
     public Shape getShape() {

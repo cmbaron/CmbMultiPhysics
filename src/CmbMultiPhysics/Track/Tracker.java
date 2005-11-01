@@ -156,7 +156,7 @@ public class Tracker {
         while (i.hasNext()) {
             Trackable checkingTrackable = (Trackable) i.next();
             
-            if (isWithinBoundryParameters(checkingTrackable.getShape(), boundry, parameter)) {
+            if (isWithinBoundryParameters(checkingTrackable.getBounds(), boundry, parameter)) {
                 if (classtype.isInstance(checkingTrackable)) {
                     returnVector.add(checkingTrackable);
                 }
