@@ -85,7 +85,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             //System.out.println("trying to pass to parent, which is myself. shit.");
             
         }
-        getParent().addItemToTracker(t);
+        getRoot().getParent().addItemToTracker(t);
     }
     
     public void upwardResorting() {
@@ -189,7 +189,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         b1.setRoot(getRoot());
         b2.setRoot(getRoot());
         
-        if (t1.getWidth() < 100 && t1.getHeight() < 100) {
+        if (t1.getWidth() < 200 && t1.getHeight() < 200) {
             b1.setSmallest(true);
             b2.setSmallest(true);
         }
