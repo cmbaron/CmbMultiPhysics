@@ -313,7 +313,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         return(true);
         
     }
-    
+    /*
     private synchronized void addItemToTracker(final Trackable t) {
         
         boolean contained = false;
@@ -401,7 +401,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             }
             
         }
-    }
+    }*/
     
     public void syncTick(int n) {
         /*

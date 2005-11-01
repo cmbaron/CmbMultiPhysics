@@ -145,15 +145,14 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                         //System.out.println("getting here");
                         //runCollisionDetection();
                         rate = Calendar.getInstance().getTimeInMillis();
-                        collisionEngineRunner(bttr1);
-                        runOnTrackables(bttr2);
+                        if (tryGetTicker()) {
+                            collisionEngineRunner(bttr1);
+                            runOnTrackables(bttr2);
+                        }
+                        //collisionEngineRunner(bttr1);
+                        //runOnTrackables(bttr2);
                         rate = Calendar.getInstance().getTimeInMillis() - rate;
                         ///System.out.println(rate);
-                        //collisionMaster = new Hashtable();
-                        ///System.out.println("new cm");
-                        if (tryGetTicker()) {
-                            //tickerSignal = 0;
-                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -278,9 +277,9 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                         //if (!inboundArea.isEmpty()) {
                         // high precision collision check successful.
                         if (ComplexCollisionItem.class.isInstance(inbound1) && ComplexCollisionItem.class.isInstance(inbound2)) {
-                            ///System.out.println("Doing collisions!");
-                            ((ComplexCollisionItem) inbound1).correctPosition((ComplexCollisionItem)inbound2);
-                            ((ComplexCollisionItem) inbound1).doCollision((ComplexCollisionItem)inbound2);
+                            //System.out.println("Doing collisions!"  + inbound1 + inbound2);
+                            if(((ComplexCollisionItem) inbound1).correctPosition((ComplexCollisionItem)inbound2))
+                                ((ComplexCollisionItem) inbound1).doCollision((ComplexCollisionItem)inbound2);
                             
                         }
                         
@@ -383,8 +382,8 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                     // high precision collision check successful.
                     if (ComplexCollisionItem.class.isInstance(inbound) && ComplexCollisionItem.class.isInstance(collidingWith)) {
                         
-                        ((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
-                        ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
+                        if (((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith))
+                            ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
                         
                         
                     }

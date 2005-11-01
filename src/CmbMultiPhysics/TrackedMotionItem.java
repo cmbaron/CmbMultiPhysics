@@ -297,7 +297,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
        if (collided) 
            return(null);
         
-        collided = true;
+        //collided = true;
         
         return(super.getCollisionMomentum(c));
     }
@@ -306,10 +306,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      *
      *
      */
-    public void correctPosition(ComplexCollisionItem c) {
+    public boolean correctPosition(ComplexCollisionItem c) {
         
        if (!getCollidable() && corrected)
-            return;
+            return false;
         
         corrected = true;
         
@@ -317,16 +317,16 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         FloatVector intendedPosition = positionCorrection(c.getShape(), 2f);
         
         if (intendedPosition == null) 
-            return;
+            return false;
         
         // tell our colliding body what we want to do about our overlap
         ///System.out.println("1 Going to move to: " + intendedPosition.toString());
         final FloatVector actuallyMovingTo = (FloatVector)c.correctPositionAbout(this, (FloatVector)intendedPosition.clone());
-        if (actuallyMovingTo != null) 
+        if (actuallyMovingTo == null)
+            return false;
         ///System.out.println("1 Actually moving to: " + actuallyMovingTo);
             setPosition(actuallyMovingTo);
-        
-        
+        return true;
     }
     
     /**  find out where we've been told the other party is willing to move, and move there
@@ -337,10 +337,10 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention) {
         
         // once per tick!
-        //if (corrected)
-           // return(null);
+        if (corrected)
+            return(null);
         
-        corrected = true;
+        //corrected = true;
         
         Rectangle2D theirPosition = c.getShape().getBounds2D();
         Rectangle2D theirIntendedShape = (Rectangle2D) new RectanglePoint(intention, (float)theirPosition.getWidth(), (float)theirPosition.getHeight());

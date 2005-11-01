@@ -17,7 +17,7 @@ import CmbMultiPhysics.*;
  * @author Administrator
  */
 public interface ComplexCollisionItem extends SimpleCollisionItem,Trackable {
-    public void correctPosition(ComplexCollisionItem c);
+    public boolean correctPosition(ComplexCollisionItem c);
     public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention);
     public Shape getShape();
 }
