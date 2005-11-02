@@ -67,7 +67,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             //System.out.println("trying to pass to parent, which is myself. shit.");
             
         }
-        getParent().addItem2(t);
+        getRoot().getParent().addItem2(t);
     }
     
     public void upwardResorting() {
