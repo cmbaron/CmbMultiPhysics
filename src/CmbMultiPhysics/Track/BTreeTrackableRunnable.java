@@ -15,5 +15,5 @@ package CmbMultiPhysics.Track;
  * @author Administrator
  */
 public interface BTreeTrackableRunnable {
-    public void run(Trackable t, BTreeTracker btt);
+    public void run(Trackable t, BTreeTracker btt, int n);
 }

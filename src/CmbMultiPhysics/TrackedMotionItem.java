@@ -28,7 +28,7 @@ import CmbMultiPhysics.Track.*;
  *
  * @author Administrator
  */
-public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,ComplexCollisionItem,SyncTickable {
+public class TrackedMotionItem extends MotionItem implements PhysicsSyncTrackable,ComplexCollisionItem,SyncTickable {
     
     PhysicsTracker2 pt;
     Shape currentShape;
@@ -39,6 +39,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     boolean collided = true;
     boolean corrected = true;
     int ticknumber;
+    int tfnumber;
     
     /** Creates a new instance of TrackedMotionItem */
     public TrackedMotionItem() {
@@ -58,6 +59,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
         p.addPoint(5,-5);
         //p.addPoint(5,0);
         ticknumber = -1;
+        tfnumber = -1;
         setBaseShape(p);
         setShape(getBaseShape());
         // we need a clone of baseBounds.
@@ -73,6 +75,14 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+    
+    public void tickForward(float deltaT, int n) {
+        if (n == tfnumber)
+            return;
+        
+        tfnumber = n;
+        tickForward(deltaT);
     }
     
     /**

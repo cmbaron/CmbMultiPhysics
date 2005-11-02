@@ -67,15 +67,15 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             //System.out.println("trying to pass to parent, which is myself. shit.");
             
         }
-        getRoot().getParent().addItem2(t);
+        getParent().addItem2(t);
     }
     
-    public synchronized void upwardResorting() {
+    public void upwardResorting() {
         Object a[];
         //synchronized(items) {
             //Vector theseItems = getItems();
             //Vector theseItems = items;
-            a = getItems().toArray();
+            a = ((Vector)getItems().clone()).toArray();
             //Iterator i = theseItems.iterator();
         //}
         for (int x = 0; x < a.length; x++) {
@@ -90,7 +90,8 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
                     
                 } else {
                     Shape thisShape = getBounds();
-                    if (!thisShape.intersects(t.getBounds()) && !thisShape.contains(t.getBounds())) {
+                    //if (!thisShape.intersects(t.getBounds()) && !thisShape.contains(t.getBounds())) {
+                     if (!isWithinBoundryParameters(thisShape, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
                     /*try {
                         throw new Exception();
                     } catch (Exception e) {
@@ -108,7 +109,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         
     }
     
-    public void runOnTrackables(BTreeTrackableRunnable b) {
+    public void syncRunOnTrackables(BTreeTrackableRunnable b, int n) {
         //Vector items;
         //items = getItems();
         Object a[];
@@ -120,9 +121,9 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         for (int x = 0; x < a.length; x++) {
             Object obj = a[x];
             if (BTreeTracker.class.isInstance(obj))
-                ((BTreeTracker) obj).runOnTrackables(b);
+                ((BTreeTracker) obj).syncRunOnTrackables(b, n);
             else if (Trackable.class.isInstance(obj)) {
-                b.run((Trackable) obj, this);
+                b.run((Trackable) obj, this, n);
             }
         }
         
@@ -160,7 +161,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         
     }
     
-    private synchronized void splitUp() {
+    private void splitUp() {
         
         //System.out.println("splitting up");
         
@@ -186,11 +187,14 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             // split rectangle about centerY
             t1 = new Rectangle2D.Float(minX,minY,width,height/2);
             t2 = new Rectangle2D.Float(minX,centerY,width,height/2);
+            System.out.println("xsplit: " + t1 + " " + t2);
             
         } else {
             t1 = new Rectangle2D.Float(minX, minY, width/2, height);
             t2 = new Rectangle2D.Float(centerX, minY, width/2, height);
+             System.out.println("ysplit:" + t1 + " " + t2);
         }
+        
         
         
         //System.out.println("split1: " + t1.toString());
@@ -284,32 +288,40 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
                 if (!items.contains(t)) {
                     if (isSmallest() || items.size() < 5) {
                         items.add(t);
+                        System.out.println("adding " + t.getBounds() + " to: " + getBounds());
                         return true;
                     } else {
                         splitUp();
+                        addItem2(t);
                     }
                 } else {
                     // contains
                     
                     // this shouldn't happen
-                    System.out.println("Trying to add a contained object???");
+                    System.out.println("adding a contained object???? ");
+                    //System.out.println(isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS));
+                    //System.out.println(getBounds() + " contains: " + t.getBounds());
                     return true;
                 }
             } else {
+                boolean placed = false;
                 Object a[] = ((Vector)items.clone()).toArray();
                 for (int x = 0; x < a.length; x++) 
                     if (BTreeTracker.class.isInstance(a[x]))
                         if (((BTreeTracker) a[x]).addItem2(t))
-                            return true;
+                            placed = true;
+                if (placed)
+                    return true;
             }
         } else {
+            
             return (false);
         }
         
         // if we made it here that means there was no legitimate reason to bomb out
         // but we didn't place it anywhere.
         items.add(t);
-        System.out.println("had nothing else to do, so i ate it.");
+        System.out.println("had nothing else to do, so i ate it." + t.getBounds());
         return(true);
         
     }

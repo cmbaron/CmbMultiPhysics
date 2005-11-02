@@ -12,6 +12,7 @@ package CmbMultiPhysics;
 import CmbMultiPhysics.Track.BTreeTrackableRunnable;
 import CmbMultiPhysics.Track.BTreeTracker;
 import CmbMultiPhysics.Track.Trackable;
+import CmbMultiPhysics.Track.PhysicsSyncTrackable;
 import java.util.Iterator;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -127,7 +128,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     
     public void collisionEngineRunner(BTreeTrackableRunnable bttr) {
         
-        runOnTrackables(bttr);
+        syncRunOnTrackables(bttr, 0);
         
     }
     
@@ -147,7 +148,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                         rate = Calendar.getInstance().getTimeInMillis();
                         if (tryGetTicker()) {
                             collisionEngineRunner(bttr1);
-                            runOnTrackables(bttr2);
+                            syncRunOnTrackables(bttr2, 0);
                         }
                         //collisionEngineRunner(bttr1);
                         //runOnTrackables(bttr2);
@@ -182,6 +183,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         float runRate = (float)rateInMillis/1000;
         long runRateMillis = rateInMillis;
         long calc;
+        int n = 0;
         
         BTreeTrackableRunnable bttr = getTickForwardBTTR();
         
@@ -193,7 +195,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
                 Thread.sleep(sleepRate);
                 rate = Calendar.getInstance().getTimeInMillis();
                 //tickForward((float)rateInMillis/1000);
-                runOnTrackables(bttr);
+                syncRunOnTrackables(bttr, n++);
                 rate = Calendar.getInstance().getTimeInMillis() - rate;
                 if (rate > rateInMillis) {
                     
@@ -220,7 +222,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     
     public BTreeTrackableRunnable getClearCollisionsBTTR() {
         BTreeTrackableRunnable bttr = new BTreeTrackableRunnable() {
-            public void run(Trackable t, BTreeTracker btt) {
+            public void run(Trackable t, BTreeTracker btt, int n) {
                 if (PhysicsTrackable.class.isInstance(t)) {
                     ///System.out.println("actually doing a tf " + (float)PhysicsTracker2.rateInMillis/1000);
                     ((PhysicsTrackable) t).clearCollisions();
@@ -232,11 +234,11 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
     
     public BTreeTrackableRunnable getTickForwardBTTR() {
         BTreeTrackableRunnable bttr = new BTreeTrackableRunnable() {
-            public void run(Trackable t, BTreeTracker btt) {
+            public void run(Trackable t, BTreeTracker btt, int n) {
                 ///System.out.println("called to tf");
-                if (PhysicsTrackable.class.isInstance(t)) {
+                if (PhysicsSyncTrackable.class.isInstance(t)) {
                     ///System.out.println("actually doing a tf " + (float)PhysicsTracker2.rateInMillis/1000);
-                    ((PhysicsTrackable) t).tickForward((float)PhysicsTracker2.rateInMillis/1000);
+                    ((PhysicsSyncTrackable) t).tickForward((float)PhysicsTracker2.rateInMillis/1000, n);
                 }
             }
         };
@@ -248,7 +250,7 @@ public class PhysicsTracker2 extends BTreeTracker implements Runnable  {
         
         // define the dynamic block of code to be run
         BTreeTrackableRunnable bttr = new BTreeTrackableRunnable() {
-            public void run(Trackable t, BTreeTracker btt) {
+            public void run(Trackable t, BTreeTracker btt, int n) {
                 if (!PhysicsTrackable.class.isInstance(t))
                     return;
                 
