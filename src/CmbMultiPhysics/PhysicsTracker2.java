@@ -12,7 +12,7 @@ package CmbMultiPhysics;
 import CmbMultiPhysics.Track.BTreeTrackableRunnable;
 import CmbMultiPhysics.Track.BTreeTracker;
 import CmbMultiPhysics.Track.Trackable;
-import CmbMultiPhysics.Track.PhysicsSyncTrackable;
+import CmbMultiPhysics.PhysicsSyncTrackable;
 import java.util.Iterator;
 import java.util.Enumeration;
 import java.util.Vector;
