@@ -14,17 +14,14 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     
     float x;
     float y;
-    float z;
     
     private final static FloatVector XVECTOR = new FloatVector(1,0);
-    private final static FloatVector YVECTOR = new FloatVector(0,1);
-    private final static FloatVector ZVECTOR = new FloatVector(0,0,1);
+    private final static FloatVector YVECTOR = new FloatVector(0,1); 
     
     /** Creates a new instance of FloatVector */
     public FloatVector() {
         x = 0f;
         y = 0f;
-        z = 0f;
     }
     
     /** constructor with parameters
@@ -37,22 +34,12 @@ public class FloatVector implements Cloneable, java.io.Serializable {
         this.y = y;
     }
     
-    public FloatVector(final float x, final float y, final float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-    
     public static FloatVector getNorth() {
         return ((FloatVector)YVECTOR.clone());
     }
     
     public static FloatVector getWest() {
         return ((FloatVector) XVECTOR.clone());
-    }
-    
-    public static FloatVector getUp() {
-        return ((FloatVector) ZVECTOR.clone());
     }
     
     /** sees if two doublevectors are equal
@@ -62,7 +49,7 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     public boolean equals(final Object o)
     {
         FloatVector dv = (FloatVector)o;
-        if ((dv.x == x) && (dv.y == y) && (dv.z == z))
+        if ((dv.x == x) && (dv.y == y))
         {
             return true;
         }
@@ -106,7 +93,7 @@ public class FloatVector implements Cloneable, java.io.Serializable {
      */    
     public String toString()
     {
-        return new String("DoubleVector=[" + x + "," + y + "," + z + "]");
+        return new String("DoubleVector=[" + x + "," + y + "]");
     }
     
     public String toNiceString() 
@@ -125,7 +112,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
         //setY(dv.getY() + getY());
         x = dv.x + x;
         y = dv.y + y;
-        z = dv.z + z;
         // totally ok
         return this;
     }
@@ -140,7 +126,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
         //setY(getY() - dv.getY());
         x = x - dv.x;
         y = y - dv.y;
-        z = z - dv.z;
         // totally ok
         return this;
     }
@@ -151,11 +136,11 @@ public class FloatVector implements Cloneable, java.io.Serializable {
      *
      */
     public float getMagnitude() {
-        float mag = (float)Math.sqrt(x*x+y*y+z*z);
+        float mag = (float)Math.sqrt(x*x+y*y);
         if (Float.isNaN(mag)) {
             return(0f);
         }
-        return (mag);
+        return ((float)Math.sqrt(x*x+y*y));
     }
     
      public FloatVector invertY()
@@ -170,11 +155,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
         return this;
     }
     
-    public FloatVector invertZ() {
-        this.z *= -1;
-        return this;
-    }
-    
     /** scales a vector
      *
      * @param scalar scalar to multiply against vector
@@ -182,7 +162,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     public FloatVector scale(final float scalar) {
         x = x*scalar;
         y = y*scalar;
-        z = z*scalar;
         
         return(this);
     }
@@ -210,7 +189,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     {
         x = Math.abs(x);
         y = Math.abs(y);
-        z = Math.abs(z);
         // setX(Math.abs(getX()));
         // setY(Math.abs(getY()));
         
@@ -222,19 +200,17 @@ public class FloatVector implements Cloneable, java.io.Serializable {
      * @return
      */    
     public Object clone() {
-        FloatVector dv = new FloatVector(x, y, z);
+        FloatVector dv = new FloatVector(x, y);
         return dv;
     }
     
     /**
      * @param d
      * @return
-     * 
      */    
     public final boolean within(final float d)
     {
-        
-        if (getMagnitude() < d)
+        if (x < d && y < d)
         {
             return true;
         }
@@ -250,7 +226,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
        // setY(getY() * -1);
        x = x * -1;
        y = y * -1;
-       z = y * -1;
        return this;
     }
     
@@ -272,7 +247,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     /** Finds an angle between this vector and another vector
      * @param U a vector to find the angle between
      * @return the angle between this vector and the vector given in degrees
-     * @bugs this is NOT NOT NOT 3D safe
      */
     public float getAngle(final FloatVector U) {
         float angle = (float)Math.toDegrees((float)Math.acos((this.dotProduct(U)/(this.getMagnitude()*U.getMagnitude()))));
@@ -287,7 +261,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
     /** Creates a new Vector the specified number of degrees 
      *
      * @param angle angle in degrees
-     * @bugs this is NOT NOT NOT 3D safe
      *
      */
     public FloatVector getRotation(float angle) {
@@ -309,10 +282,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
         
     }
     
-    /**
-     * @bugs this is not 3D safe
-     *
-     */
     public FloatVector getOrthogonal() {
         // returns an orthogonal vector
         //   V = < x, y >
@@ -330,7 +299,6 @@ public class FloatVector implements Cloneable, java.io.Serializable {
         float dotP = 0;
         dotP += this.getX() * U.getX();
         dotP += this.getY() * U.getY();
-        dotP += this.getZ() * U.getZ();
         
         return (dotP);
     }
@@ -340,25 +308,7 @@ public class FloatVector implements Cloneable, java.io.Serializable {
      */    
     public final FloatVector reverse()
     {
-        return new FloatVector(this.x * - 1, this.y * - 1, this.z * - 1);
+        return new FloatVector(this.x * - 1, this.y * - 1);
         
-    }
-
-    /**
-     * Getter for property z.
-     * @return Value of property z.
-     */
-    public float getZ() {
-
-        return this.z;
-    }
-
-    /**
-     * Setter for property z.
-     * @param z New value of property z.
-     */
-    public void setZ(float z) {
-
-        this.z = z;
     }
 }

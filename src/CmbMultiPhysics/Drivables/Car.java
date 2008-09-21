@@ -57,15 +57,12 @@ public class Car extends TrackedMotionItem implements Drivable {
         resetAcceleration();
     }
     
-    // we need to synchronize operations on velocity.
-    //    -- this should be changed to accessing a protected velocity & synchronizing
-    //    -- only it.
-    public void setDirection(FloatVector direction) {
+    public synchronized void setDirection(FloatVector direction) {
         
         ///System.out.println("setting direction: " + direction.toString() + direction.unitVector().toString() + Float.toString(getVelocity().getMagnitude()));
         
         this.direction = direction;
-        synchronized(velocity) {
+        
         // now we'll cheat and fix our velocity this way
         if (getVelocity().getMagnitude() > 0.0f) {
             
@@ -77,7 +74,6 @@ public class Car extends TrackedMotionItem implements Drivable {
             }
             
             setVelocity(direction.unitVector().scale(getVelocity().getMagnitude()));
-        }
         }
     }
     

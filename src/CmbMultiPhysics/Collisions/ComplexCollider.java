@@ -31,7 +31,7 @@ public abstract class ComplexCollider implements ComplexCollisionItem {
     abstract public float getMass();
     abstract public void setCollidable(boolean b);
     abstract public boolean getCollidable();
-    abstract public boolean correctPosition(ComplexCollisionItem c);
+    abstract public void correctPosition(ComplexCollisionItem c);
     abstract public FloatVector correctPositionAbout(ComplexCollisionItem c, FloatVector intention);
     
     public static FloatVector dist2Center(Shape shape1, Shape shape2) {

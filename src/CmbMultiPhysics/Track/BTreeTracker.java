@@ -10,7 +10,6 @@
 
 package CmbMultiPhysics.Track;
 
-import java.awt.event.ContainerAdapter;
 import java.util.Vector;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
@@ -21,13 +20,13 @@ import java.util.Hashtable;
  *
  * @author cbaron
  */
-public class BTreeTracker extends TrackableTracker implements SyncTickable {
+public class BTreeTracker extends TrackableTracker implements Tickable {
     
     boolean leaf;
     BTreeTracker root = null;
     BTreeTracker parent = null;
+    Hashtable registry = null;
     boolean smallest;
-    int lastticked = -1;
     
     /** Creates a new instance of BTreeTracker */
     public BTreeTracker() {
@@ -35,7 +34,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         smallest = false;
     }
     
-    
+
     
     public boolean isSmallest() {
         return smallest;
@@ -47,6 +46,23 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
     
     public void setRoot(BTreeTracker btt) {
         root = btt;
+        if (root.equals(this))
+            setRegistry(new Hashtable());
+    }
+    
+    
+    public Hashtable getRegistry() {
+        if (getRoot().equals(this))
+            return ((Hashtable)registry);
+        else
+            return (getRoot().getRegistry());
+    }
+    
+    public void setRegistry(Hashtable h) {
+        if (getRoot().equals(this))
+            registry = h;
+        else
+            getRoot().setRegistry(h);
     }
     
     public BTreeTracker getRoot() {
@@ -67,91 +83,64 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             //System.out.println("trying to pass to parent, which is myself. shit.");
             
         }
-        getRoot().getParent().addItem2(t);
+        getParent().addItemToTracker(t);
     }
     
     public void upwardResorting() {
-        Object a[];
-        //synchronized(items) {
-            //Vector theseItems = getItems();
-            //Vector theseItems = items;
-            a = ((Vector)getItems().clone()).toArray();
-            //Iterator i = theseItems.iterator();
-        //}
-        for (int x = 0; x < a.length; x++) {
-            Object obj = a[x];
+        Vector items = getItems();
+        Iterator i = items.iterator();
+        
+        while (i.hasNext()) {
+            Object obj = i.next();
             if (!BTreeTracker.class.isInstance(obj)) {
                 Trackable t = (Trackable) obj;
-                if (!isLeaf()) {
-                    //synchronized(items) {
-                        items.remove(obj);
-                    //}
-                    passToParent(t);
-                    
-                } else {
-                    Shape thisShape = getBounds();
-                    //if (!thisShape.intersects(t.getBounds()) && !thisShape.contains(t.getBounds())) {
-                     if (!isWithinBoundryParameters(thisShape, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
+                Shape thisShape = t.getShape();
+                if (!thisShape.intersects(getShape().getBounds2D()) && !thisShape.contains(getShape().getBounds2D())) {
                     /*try {
                         throw new Exception();
                     } catch (Exception e) {
-                      e.printStackTrace();
+                        e.printStackTrace();
                     }*/
-                        //System.out.println("hey, this object isn't in us anymore" + thisShape.getBounds2D().toString());
-                        //synchronized(items) {
-                            items.remove(obj);
-                        //}
-                        passToParent(t);
-                    }
+                    //System.out.println("hey, this object isn't in us anymore" + thisShape.getBounds2D().toString());
+                    Vector newItems = getItems();
+                    newItems.remove(t);
+                    setItems(newItems);
+                    rootUnregisterTracker(t, this);
+                    // lets throw it at the root.
+                    passToParent(t);
+                    //if (!getParent().equals(this)) {
+                      //getParent().upwardResorting();
+                    //}
                 }
             }
         }
-        
     }
     
-    public void syncRunOnTrackables(BTreeTrackableRunnable b, int n) {
-        //Vector items;
-        //items = getItems();
-        Object a[];
-        //synchronized(items) {
-            a = getItems().toArray();
-        //}
-        //Iterator i = items.iterator();
+    private void processTick() {
+        Vector items;
+        items = getItems();
+        Iterator i = items.iterator();
         
-        for (int x = 0; x < a.length; x++) {
-            Object obj = a[x];
-            if (BTreeTracker.class.isInstance(obj))
-                ((BTreeTracker) obj).syncRunOnTrackables(b, n);
-            else if (Trackable.class.isInstance(obj)) {
-                b.run((Trackable) obj, this, n);
-            }
-        }
         
-    }
-    
-    private void processTick(int n) {
-        Object a[];
-        //synchronized(items) {
-            a = getItems().toArray();
-        //}
-        //Iterator i = items.iterator();
-        
-        for (int x = 0; x < a.length; x++) {
-            Object obj = a[x];
+        while (i.hasNext()) {
+            Object obj = i.next();
             if (Trackable.class.isInstance(obj)) {
                 Trackable t = (Trackable) obj;
                 // ticket if we can
-                if (SyncTickable.class.isInstance(t))
-                    ((SyncTickable)t).syncTick(n);
-                //System.out.println("syncticked");
-                
-                // this is where we should be doing collision detection
-                
-                
+                if (Tickable.class.isInstance(t))
+                    ((Tickable)t).tick();
+                Shape thisShape = t.getShape();
+                if (thisShape == null) {
+                    //System.out.println("their shape is null");
+                    
+                }
+                if (getShape() == null) {
+                    //System.out.println("our shape is null");
+                }
                 
             }  else {
-                BTreeTracker t = (BTreeTracker) a[x];
-                t.syncTick(n);
+                BTreeTracker t = (BTreeTracker) i.next();
+                t.tick();
             }
         }
         
@@ -168,8 +157,8 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         Rectangle2D t1;
         Rectangle2D t2;
         
-        
-        Rectangle2D r = getBounds();
+        Shape s = getShape();
+        Rectangle2D r = s.getBounds2D();
         
         
         final float centerX,centerY;
@@ -187,15 +176,11 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
             // split rectangle about centerY
             t1 = new Rectangle2D.Float(minX,minY,width,height/2);
             t2 = new Rectangle2D.Float(minX,centerY,width,height/2);
-            System.out.println("xsplit: " + t1 + " " + t2);
             
         } else {
             t1 = new Rectangle2D.Float(minX, minY, width/2, height);
             t2 = new Rectangle2D.Float(centerX, minY, width/2, height);
-             System.out.println("ysplit:" + t1 + " " + t2);
         }
-        
-        
         
         //System.out.println("split1: " + t1.toString());
         //System.out.println("split2: " + t2.toString());
@@ -210,7 +195,7 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         b1.setRoot(getRoot());
         b2.setRoot(getRoot());
         
-        if (t1.getWidth() < 50 || t1.getHeight() < 50) {
+        if (t1.getWidth() < 20 && t1.getHeight() < 20) {
             b1.setSmallest(true);
             b2.setSmallest(true);
         }
@@ -218,54 +203,25 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         // we are NO LONGER A LEAF
         setLeaf(false);
         
-        synchronized(items) {
-            items.add(b1);
-            items.add(b2);
-        }
-        
-        /*
-        synchronized(items) {
-            Vector oldItems = (Vector) getItems().clone();
-            Vector newItems = new Vector();
-            newItems.add(b1);
-            newItems.add(b2);
-            setItems(newItems);
-         
-            Object a[] = oldItems.toArray();
-         
-            for (int x = 0; x < a.length; x++) {
-                Object obj = a[x];
-                addItemToTracker((Trackable)obj);
-            }
-         
-        }
-         */
-        /*  this doesn't make sense here, lets defer this until after.
         // now we need to add all our current items into the children
-        Vector items;
-        Iterator i;
-         
-        synchronized(items) {
-         
-            i = items.iterator();
-         
-            // we can use recursion to do it once we replace our items with
-            // the new trackers
-         
-            Vector newItems = new Vector();
-            newItems.add(b1);
-            newItems.add(b2);
-         
-            setItems(newItems);
-        }
-         
+        Vector items = getItems();
+        Iterator i = items.iterator();
+        
+        // we can use recursion to do it once we replace our items with
+        // the new trackers
+        
+        Vector newItems = new Vector();
+        newItems.add(b1);
+        newItems.add(b2);
+        
+        setItems(newItems);
+        
         while (i.hasNext()) {
             Trackable item = (Trackable) i.next();
             //System.out.println("rejibbing: " + item.toString());
             rootUnregisterTracker(item, this);
             addItemToTracker(item);
         }
-         */
         
     }
     
@@ -273,166 +229,144 @@ public class BTreeTracker extends TrackableTracker implements SyncTickable {
         return leaf;
     }
     
-    public void setLeaf(final boolean b) {
+    public void setLeaf(boolean b) {
         leaf = b;
     }
     
-    public synchronized void registerItem(final Trackable t) {
-        addItem2(t);
+    public void registerItem(Trackable t) {
+        addItemToTracker(t);
     }
     
-    private synchronized boolean addItem2(final Trackable t) {
-        final Rectangle2D bounds = t.getBounds();
-        if (isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
+    private void addItemToTracker(Trackable t) {
+        
+        Vector items;
+        
+        items = getItems();
+        if (!items.contains(t)) {
+            
             if (isLeaf()) {
-                if (!items.contains(t)) {
-                    if (isSmallest() || items.size() < 5) {
-                        items.add(t);
-                        System.out.println("adding " + t.getBounds() + " to: " + getBounds());
-                        return true;
-                    } else {
-                        splitUp();
-                        addItem2(t);
-                    }
+                items = getItems();
+                if (isSmallest() || items.size() < 2) {
+                    super.registerItem(t);
+                    // tell root we own this object.
+                    //System.out.println("Adding in an object to this guy" + this.toString());
+                    rootRegisterTracker(t, this);
+                    return;
                 } else {
-                    // contains
-                    
-                    // this shouldn't happen
-                    System.out.println("adding a contained object???? ");
-                    //System.out.println(isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS));
-                    //System.out.println(getBounds() + " contains: " + t.getBounds());
-                    return true;
+                    // when we come out of this call we're guaranteed to
+                    // be a tree node
+                    splitUp();
                 }
-            } else {
-                boolean placed = false;
-                Object a[] = ((Vector)items.clone()).toArray();
-                for (int x = 0; x < a.length; x++) 
-                    if (BTreeTracker.class.isInstance(a[x]))
-                        if (((BTreeTracker) a[x]).addItem2(t))
-                            placed = true;
-                if (placed)
-                    return true;
             }
-        } else {
             
-            return (false);
+            // we need to check this again, incase we turned into a tree node
+            items = getItems();
+            boolean placed = false;
+            
+            Iterator i = items.iterator();
+            while (i.hasNext()) {
+                Object obj = i.next();
+                
+                if (BTreeTracker.class.isInstance(obj)) {
+                    BTreeTracker btreenode = (BTreeTracker) obj;
+                    if (btreenode.getShape().intersects(t.getShape().getBounds2D()) || btreenode.getShape().contains(t.getShape().getBounds2D())) {
+                        //System.out.println("putting 'er in");
+                        
+                        btreenode.addItemToTracker(t);
+                        placed = true;
+                    }
+                }
+            }
+            
+            if (!placed) {
+                //System.out.println("not quite sure why this guy is here, bouncing up");
+                // we need to make sure we're not the root if we're going to pass it up
+                // because we could get into a loop
+                if (getParent().equals(this)) {
+                    // we've got an object outside of our trackability, so we need
+                    // some mechanism to revalidate the whole world above us.
+                    //System.out.println("UNABLE TO PLACE OBJECT: " + t.getShape().getBounds2D().toString() + "in: " + getShape().toString());
+                    // this means we have a busted item.  we'll register him here, and violate the b-tree
+                    // next time around he'll get in the right place (we hope)
+                    super.registerItem(t);
+                    rootRegisterTracker(t, this);
+                    
+                    
+                } else {
+                    //rootUnregisterTracker(t, this);
+                    getParent().addItemToTracker(t);
+                }
+                
+            }
         }
-        
-        // if we made it here that means there was no legitimate reason to bomb out
-        // but we didn't place it anywhere.
-        items.add(t);
-        System.out.println("had nothing else to do, so i ate it." + t.getBounds());
-        return(true);
         
     }
-    /*
-    private synchronized void addItemToTracker(final Trackable t) {
-        
-        boolean contained = false;
-        //Vector items;
-        synchronized(items) {
-            //items = getItems();
-            if (!items.contains(t)) {
-                
-                if (isLeaf()) {
-                    //items = getItems();
-                    if (isSmallest() || items.size() < 5) {
-                        items.add(t);
-                        // tell root we own this object.
-                        //System.out.println("Adding in an object to this guy" + this.toString());
-                        //rootRegisterTracker(t, this);
-                        return;
-                    } else {
-                        // when we come out of this call we're guaranteed to
-                        // be a tree node
-                        splitUp();
-                        //return;
-                    }
-                }
-            } else {
-                contained = true;
-            }
-        }
-        // we need to check this again, incase we turned into a tree node
-        boolean placed = false;
-        final Rectangle2D bounds = t.getBounds();
-        if (isWithinBoundryParameters(bounds, getBounds(), Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {
-            //items = getItems();
-            
-            synchronized(items) {
-                Object a[] = getItems().toArray();
-                
-                //Iterator i = items.iterator();
-                
-                for (int x = 0; x < a.length; x++) {
-                    final Object obj = a[x];
-                    //final Object obj = i.next();
-                    
-                    if (BTreeTracker.class.isInstance(obj)) {
-                        final BTreeTracker btreenode = (BTreeTracker) obj;
-                        final Rectangle2D btreeShape = btreenode.getBounds();
-                        if (isWithinBoundryParameters(bounds, btreeShape, Tracker.ContainerParameters.CONTAINSORINTERSECTS)) {  // note removed contains clause here
-                            //System.out.println("putting 'er in");
-                            
-                            if (contained)
-                                items.remove(t);
-                            
-                            btreenode.addItemToTracker(t);
-                            
-                            placed = true;
-                        }
-                    }
-                }
-                
-            }
-        }
-        if (!placed) {
-            //System.out.println("not quite sure why this guy is here, bouncing up");
-            // we need to make sure we're not the root if we're going to pass it up
-            // because we could get into a loop
-            if (getParent().equals(this)) {
-                // we've got an object outside of our trackability, so we need
-                // some mechanism to revalidate the whole world above us.
-                //System.out.println("UNABLE TO PLACE OBJECT: " + t.getShape().getBounds2D().toString() + "in: " + getShape().toString());
-                // this means we have a busted item.  we'll register him here, and violate the b-tree
-                // next time around he'll get in the right place (we hope)
-                //super.registerItem(t);
-                synchronized(items) {
-                    items.add(t);
-                }
-                //rootRegisterTracker(t, this);
-                
-                
-            } else {
-                //rootUnregisterTracker(t, this);
-                synchronized(items) {
-                    if (contained)
-                        items.remove(t);
-                }
-                getParent().addItemToTracker(t);
-            }
-            
-        }
-    }*/
     
-    public void syncTick(int n) {
-        /*
-        //if (!isLeaf()) {
+    
+    public void rootUnregisterTracker(Trackable t, BTreeTracker btt) {
+        if (getRoot().equals(this)) {
+            
+            //System.out.println("removing registry size: " + Integer.toString(registry.size()));
+            Vector v = rootGetTracker(t);
+            
+            v.remove(btt);
+            rootSetTracker(t, v);
+            //System.out.println("post remove registry size: " + Integer.toString(registry.size()));
+            
+        } else {
+            getRoot().rootUnregisterTracker(t, btt);
+        }
+    }
+    
+    // register the tracker that trackable t is in.
+    public void rootRegisterTracker(Trackable t, BTreeTracker btt) {
+        if (getRoot().equals(this)) {
+            
+            Vector r = rootGetTracker(t);
+            // add our tracker
+            r.add(btt);
+            rootSetTracker(t, r);
+        } else {
+            getRoot().rootRegisterTracker(t, btt);
+        }
+    }
+    
+    public Vector rootGetTracker(Trackable t) {
+        if (getRoot().equals(this)) {
+            Vector v = ((Vector)getRegistry().get(t));
+            if (v == null) {
+                v = new Vector();
+            }
+            return((Vector)v.clone());
+        } else {
+            return(getRoot().rootGetTracker(t));
+        }
+    }
+    
+    public void rootSetTracker(Trackable t, Vector v) {
+        if (getRoot().equals(this)) {
+            Hashtable registry = getRegistry();
+            registry.remove(t);
+            registry.put(t, v);
+            setRegistry(registry);
+        } else {
+            getRoot().rootSetTracker(t, v);
+        }
+    }
+    
+    public void tick() {
+    /*
+        if (isLeaf()) {
          
-            Runnable r = new Runnable() {
+            Runnable r = new Runnable () {
                 public void run() {processTick();}
             };
             Thread t = new Thread(r);
             t.start();
-        //} else {*/
-        
-        if (n == lastticked)
-            return;
-        
-        lastticked = n;
-        
-        processTick(n);
-        //}
+        } else {
+    */
+            processTick();
+      // }
         
         
         

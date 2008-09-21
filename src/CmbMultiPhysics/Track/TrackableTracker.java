@@ -23,7 +23,6 @@ import java.util.Iterator;
 public class TrackableTracker extends Tracker implements Trackable {
     
     Shape ourShape;
-    volatile Rectangle2D bounds;
     
     /** Creates a new instance of TrackableTracker */
     public TrackableTracker() {
@@ -51,17 +50,16 @@ public class TrackableTracker extends Tracker implements Trackable {
         
         while (i.hasNext()) {
             Trackable checkingTrackable = (Trackable) i.next();
-            Rectangle2D checkingBounds = checkingTrackable.getBounds();
             
             // Recursion into contained TrackableTrackers
             if (TrackableTracker.class.isInstance(checkingTrackable)) {
                 // check to see if the TrackableTracker we have is intersecting or contained by
                 // the boundry we've handed.
-                if (isWithinBoundryParameters(checkingBounds, boundry, Tracker.ContainerParameters.CONTAINSORINTERSECTS))
+                if (isWithinBoundryParameters(checkingTrackable.getShape(), boundry, Tracker.ContainerParameters.CONTAINSORINTERSECTS))
                     returnVector.addAll(((TrackableTracker)checkingTrackable).getObjectsFromBoundry(boundry, parameter, classtype));
             }
             
-            if (isWithinBoundryParameters(checkingBounds, boundry, parameter)) {
+            if (isWithinBoundryParameters(checkingTrackable.getShape(), boundry, parameter)) {
                 if (classtype.isInstance(checkingTrackable)) {
                     returnVector.add(checkingTrackable);
                 }
@@ -87,11 +85,6 @@ public class TrackableTracker extends Tracker implements Trackable {
         return (new FloatVector((float)r.getCenterX(), (float)r.getCenterY() ));
     }
     
-    // eliminate method call
-    public Rectangle2D getBounds() {
-        return bounds;
-    }
-    
     public Shape getShape() {
         //System.out.println("got asked for our shape" + ourShape.toString());
         return ourShape;
@@ -99,7 +92,6 @@ public class TrackableTracker extends Tracker implements Trackable {
     
     public void setShape(Shape s) {
         ourShape = s;
-        bounds = ourShape.getBounds();
     }
     /*
     public int hashCode() {

@@ -156,7 +156,7 @@ public class Tracker {
         while (i.hasNext()) {
             Trackable checkingTrackable = (Trackable) i.next();
             
-            if (isWithinBoundryParameters(checkingTrackable.getBounds(), boundry, parameter)) {
+            if (isWithinBoundryParameters(checkingTrackable.getShape(), boundry, parameter)) {
                 if (classtype.isInstance(checkingTrackable)) {
                     returnVector.add(checkingTrackable);
                 }
@@ -246,9 +246,7 @@ public class Tracker {
      * @return Vector of all items
      */
     public Vector getItems() {
-        synchronized(items) {
-            return((Vector)items.clone());
-        }
+        return((Vector)items.clone());
     }
     
     /** set the vector of items
