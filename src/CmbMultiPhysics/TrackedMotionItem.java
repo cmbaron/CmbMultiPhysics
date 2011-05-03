@@ -34,6 +34,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     Shape baseShape;
     FloatVector preTickPosition;
     boolean alive;
+    boolean processedCollission;
     
     /** Creates a new instance of TrackedMotionItem */
     public TrackedMotionItem() {
@@ -75,7 +76,7 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     public void tickForward(float deltaT) {
         // save off position
         preTickPosition = getPosition();
-        
+        processedCollission = false;
         super.tickForward(deltaT);
         setShape(computeShape());
         // tell our master that we've done something
@@ -162,8 +163,25 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
     
     public void setPosition(FloatVector p) {
         super.setPosition(p);
-        computeShape();
+        //setShape(computeShape());
     }
+    
+    public boolean isColliding(ComplexCollisionItem c) {
+        // this will do a much more refined check of collisions
+        return isCollidingWithMyShape(c, getShape());
+    }
+    
+    private boolean isCollidingWithMyShape(ComplexCollisionItem c, Shape s) {
+        Area inboundArea = new Area(s);
+        Area collidingArea = new Area(c.getShape());
+        inboundArea.intersect(collidingArea);
+        return !inboundArea.isEmpty();
+    }
+    
+    public boolean processedCollision() {
+        return processedCollission;
+    }
+    
     
 
     /** This defines the position-collision behavior of this object.
@@ -172,11 +190,28 @@ public class TrackedMotionItem extends MotionItem implements PhysicsTrackable,Co
      */
     public synchronized void correctPosition(ComplexCollisionItem c) {
         
+        processedCollission = true;
+        
         if (!getCollidable())
             return;
         
-        setPosition(preTickPosition);
-        
+            setPosition(preTickPosition);
+
+            while(isCollidingWithMyShape(c, computeShape()) && !c.processedCollision()) {
+                java.util.Random r = new java.util.Random();
+
+                // bad news, dude, we're stuck.
+                            
+                int ho = (int)(getBaseShape().getBounds2D().getHeight());
+                int wo = (int)(getBaseShape().getBounds2D().getWidth());
+                            
+                float h = (ho/2 - (float)r.nextInt(ho));
+                float w = (wo/2 - (float)r.nextInt(wo));
+                
+                setPosition(getPosition().add(new FloatVector(w*0.5f,h*0.5f)));
+                // we need to force this here, or we get permostuck
+                preTickPosition = getPosition();
+        }
     }
     
 

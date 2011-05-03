@@ -82,25 +82,28 @@ public class PhysicsTracker2 extends Tracker implements Runnable  {
     public void doCollisions(PhysicsTrackable inbound, Vector hitting) {
         Iterator i = hitting.iterator();
         
+        if (!ComplexCollisionItem.class.isInstance(inbound)) {
+            return;
+        }
+
+        ComplexCollisionItem inboundCollider = (ComplexCollisionItem) inbound;
+        
         while (i.hasNext()) {
             
             PhysicsTrackable collidingWith = (PhysicsTrackable) i.next();
             
+            if (!ComplexCollisionItem.class.isInstance(collidingWith)) {
+                continue;
+            }
+            
+            ComplexCollisionItem colliding = (ComplexCollisionItem) collidingWith;
             // we have to make sure we don't collide with ourselves
-            if (inbound != collidingWith) {
-                
-                // this will do a much more refined check of collisions
-                Area inboundArea = new Area(inbound.getShape());
-                Area collidingArea = new Area(collidingWith.getShape());
-                inboundArea.intersect(collidingArea);
-                
-                if (!inboundArea.isEmpty()) {
-                    // high precision collision check successful.
-                    if (ComplexCollisionItem.class.isInstance(inbound) && ComplexCollisionItem.class.isInstance(collidingWith)) {
-                        ((ComplexCollisionItem) inbound).doCollision((ComplexCollisionItem)collidingWith);
+            if (!inboundCollider.equals(colliding)) {
+                if (inboundCollider.isColliding(colliding)) {
+
+                        inboundCollider.doCollision(colliding);
+                        inboundCollider.correctPosition(colliding);
                         
-                        ((ComplexCollisionItem) inbound).correctPosition((ComplexCollisionItem)collidingWith);
-                    }
                 }
             }
         }
